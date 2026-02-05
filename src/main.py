@@ -14,7 +14,7 @@ from src.core.middleware import InternalAuthMiddleware, RequestIDMiddleware, Exc
 
 load_dotenv()
 setup_logging()
-logger = logging.getLogger("ai_server")
+logger = logging.getLogger("mcp_server")
 
 # Global shutdown flag
 shutdown_event = False
@@ -34,15 +34,15 @@ signal.signal(signal.SIGINT, signal_handler)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    logger.info("Druling AI Server application starting up...")
+    logger.info("Druling MCP Server application starting up...")
     yield
     # Shutdown
-    logger.info("Druling AI Server application shutting down...")
+    logger.info("Druling MCP Server application shutting down...")
 
 
 app = FastAPI(
-    title="Druling AI Server",
-    description="Druling AI Server",
+    title="Druling MCP Server",
+    description="Druling MCP Server",
     version="1.0.0",
     lifespan=lifespan,
 )
