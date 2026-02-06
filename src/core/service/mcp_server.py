@@ -1,6 +1,9 @@
+import logging
 from dataclasses import field
 
 from mcp.server import FastMCP
+
+logger = logging.getLogger(__name__)
 
 
 class MCPServer:
@@ -41,5 +44,5 @@ class MCPServer:
         Args:
             transport: Transport type (stdio, sse, etc.)
         """
-        # logger.info(f"Starting {self.name} server with {transport} transport")
+        logger.info(f"Starting {self.name} server with {transport} transport")
         await self._mcp.run(transport=transport)
