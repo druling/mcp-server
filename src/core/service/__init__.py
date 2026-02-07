@@ -1,4 +1,4 @@
-from src.core.service.mcp_server import BaseMCPServer, UserContext
+from src.core.service.mcp_server import BaseMCPServer, MCPContext
 
-__all__ = ["BaseMCPServer", "UserContext"]
+__all__ = [BaseMCPServer, MCPContext]
 

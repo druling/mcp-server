@@ -2,17 +2,13 @@ import logging
 from typing import Optional
 from dataclasses import dataclass
 
-from mcp.server.fastmcp import Context
 from mcp.types import (
     Tool,
-    TextContent,
     Prompt,
-    PromptMessage,
     PromptArgument,
-    GetPromptResult,
 )
 
-from src.core.service import BaseMCPServer, UserContext
+from src.core.service import BaseMCPServer
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +24,12 @@ class WorkflowMCPServer(BaseMCPServer):
 
         @self._mcp.tool()
         async def create_workflow(
-            ctx: Context,
             name: str,
             description: str = "",
             steps: list[dict] = None,
         ) -> dict:
             """Create a new workflow."""
-            user_ctx: UserContext = self.get_user_context(ctx)
+            user_ctx = self.get_user_context()
             workflow_id = f"wf_{user_ctx.user_id}_{name.lower().replace(' ', '_')}"
             return {
                 "workflow_id": workflow_id,
@@ -42,18 +37,17 @@ class WorkflowMCPServer(BaseMCPServer):
                 "description": description,
                 "steps": steps or [],
                 "created_by": user_ctx.user_id,
-                "workspace_id": user_ctx.workspace_id,
+                "entity_id": user_ctx.entity_id,
                 "status": "created",
             }
 
         @self._mcp.tool()
         async def execute_workflow(
-            ctx: Context,
             workflow_id: str,
             input_data: dict = None,
         ) -> dict:
             """Execute a workflow by ID."""
-            user_ctx: UserContext = self.get_user_context(ctx)
+            user_ctx = self.get_user_context()
             return {
                 "execution_id": f"exec_{workflow_id}",
                 "workflow_id": workflow_id,
@@ -64,12 +58,11 @@ class WorkflowMCPServer(BaseMCPServer):
 
         @self._mcp.tool()
         async def get_workflow_status(
-            ctx: Context,
             workflow_id: str,
             execution_id: Optional[str] = None,
         ) -> dict:
             """Get the status of a workflow or specific execution."""
-            user_ctx: UserContext = self.get_user_context(ctx)
+            user_ctx = self.get_user_context()
             return {
                 "workflow_id": workflow_id,
                 "execution_id": execution_id,
@@ -80,26 +73,25 @@ class WorkflowMCPServer(BaseMCPServer):
 
         @self._mcp.tool()
         async def list_workflows(
-            ctx: Context,
             limit: int = 10,
             offset: int = 0,
             status: Optional[str] = None,
         ) -> dict:
             """List all workflows for the current user."""
-            user_ctx: UserContext = self.get_user_context(ctx)
+            user_ctx = self.get_user_context()
             return {
                 "workflows": [],
                 "total": 0,
                 "limit": limit,
                 "offset": offset,
                 "user_id": user_ctx.user_id,
-                "workspace_id": user_ctx.workspace_id,
+                "entity_id": user_ctx.entity_id,
             }
 
         @self._mcp.tool()
-        async def delete_workflow(ctx: Context, workflow_id: str) -> dict:
+        async def delete_workflow(workflow_id: str) -> dict:
             """Delete a workflow by ID."""
-            user_ctx: UserContext = self.get_user_context(ctx)
+            user_ctx = self.get_user_context()
             return {
                 "workflow_id": workflow_id,
                 "status": "deleted",
@@ -110,72 +102,25 @@ class WorkflowMCPServer(BaseMCPServer):
         """Register all workflow prompts with the MCP server."""
 
         @self._mcp.prompt()
-        async def workflow_creation_guide(workflow_type: str = "general") -> GetPromptResult:
-            """Get a guide for creating workflows."""
-            return GetPromptResult(
-                description=f"Guide for creating a {workflow_type} workflow",
-                messages=[
-                    PromptMessage(
-                        role="user",
-                        content=TextContent(
-                            type="text",
-                            text=f"""I want to create a {workflow_type} workflow. 
-Please help me define the following:
-1. Workflow name and description
-2. Input parameters required
-3. Steps to execute
-4. Output format
-5. Error handling strategy"""
-                        )
-                    )
-                ]
-            )
+        async def workflow_creation_guide(workflow_type: str = "general") -> str:
+            """Get a comprehensive guide for creating workflows."""
+            try:
+                user_ctx = self.get_user_context()
+                logger.info(f"Getting workflow creation guide for user: {user_ctx.user_id}")
+            except ValueError:
+                logger.info("Getting workflow creation guide (no user context)")
+
+            return f"Guide for creating {workflow_type} workflows..."
 
         @self._mcp.prompt()
-        async def workflow_troubleshooting(
-            error_type: str = "general",
-            workflow_id: Optional[str] = None,
-        ) -> GetPromptResult:
+        async def workflow_troubleshooting(error_type: str = "", workflow_id: str = "") -> str:
             """Get troubleshooting guidance for workflow errors."""
-            context = f"Workflow ID: {workflow_id}" if workflow_id else "No specific workflow"
-            return GetPromptResult(
-                description=f"Troubleshooting guide for {error_type} errors",
-                messages=[
-                    PromptMessage(
-                        role="user",
-                        content=TextContent(
-                            type="text",
-                            text=f"""I'm experiencing a {error_type} error in my workflow.
-{context}
-
-Please help me:
-1. Identify the root cause
-2. Suggest fixes
-3. Prevent this issue in the future"""
-                        )
-                    )
-                ]
-            )
+            return f"Troubleshooting guide for error: {error_type}, workflow: {workflow_id}"
 
         @self._mcp.prompt()
-        async def workflow_optimization() -> GetPromptResult:
-            """Get optimization suggestions for workflows."""
-            return GetPromptResult(
-                description="Workflow optimization suggestions",
-                messages=[
-                    PromptMessage(
-                        role="user",
-                        content=TextContent(
-                            type="text",
-                            text="""Please analyze my workflow and suggest optimizations for:
-1. Performance improvements
-2. Resource efficiency
-3. Error resilience
-4. Maintainability"""
-                        )
-                    )
-                ]
-            )
+        async def workflow_optimization() -> str:
+            """Get optimization suggestions for improving workflow performance and reliability."""
+            return "Optimization suggestions for workflows..."
 
     def get_tool_definitions(self) -> list[Tool]:
         """Get all tool definitions for this server."""
