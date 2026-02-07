@@ -1,19 +1,15 @@
+import contextlib
 import logging
 import signal
-from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from requests import Request
 
-from src.core.exceptions import BaseError
+from src.servers.druling.workflow.mcp import WorkflowMCPServer
 from src.setup.api import register_routes
-from src.core.logger import setup_logging
-from src.core.middleware import InternalAuthMiddleware, RequestIDMiddleware, ExceptionHandlers
 
 load_dotenv()
-setup_logging()
 logger = logging.getLogger("mcp_server")
 
 # Global shutdown flag
@@ -30,13 +26,19 @@ def signal_handler(signum, frame):
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
+# Initialize MCP servers
+workflow_server = WorkflowMCPServer()
 
-@asynccontextmanager
+
+@contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    """Combined lifespan to manage MCP session managers."""
     logger.info("Druling MCP Server application starting up...")
-    yield
-    # Shutdown
+    async with contextlib.AsyncExitStack() as stack:
+        await stack.enter_async_context(workflow_server.mcp.session_manager.run())
+        # Add more MCP servers here as needed:
+        # await stack.enter_async_context(another_server.mcp.session_manager.run())
+        yield
     logger.info("Druling MCP Server application shutting down...")
 
 
@@ -47,7 +49,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Register REST API routes
 register_routes(app)
+
+# Mount MCP servers
+app.mount("/workflow", workflow_server.mcp.streamable_http_app())
 
 origins = ["*"]
 app.add_middleware(
@@ -57,19 +63,3 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.add_middleware(InternalAuthMiddleware)
-app.add_middleware(RequestIDMiddleware)
-
-
-@app.exception_handler(BaseError)
-async def global_exception_handler(request: Request, exc: BaseError):
-    return await ExceptionHandlers.handle_base_error(request, exc)
-
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    return await ExceptionHandlers.handle_global_exception(request, exc)
-
-
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException):
-    return await ExceptionHandlers.handle_http_exception(request, exc)
