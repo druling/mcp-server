@@ -6,8 +6,7 @@ from pydantic import Field
 
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from src.servers.druling.workflow.outputs import CreateWorkflowOutput, ExecuteWorkflowOutput, WorkflowStatusOutput, \
-    ListWorkflowsOutput, DeleteWorkflowOutput
+from src.servers.druling.workflow import outputs
 from src.servers.druling.workflow.prompts import workflow_prompts
 
 logger = logging.getLogger(__name__)
@@ -35,10 +34,10 @@ class WorkflowMCPServer(BaseMCPServer):
             name: Annotated[str, Field(description="The name of the workflow")],
             description: Annotated[str, Field(description="Optional description of the workflow")] = "",
             steps: Annotated[list[dict], Field(description="List of workflow steps as dictionaries")] = None,
-        ) -> CreateWorkflowOutput:
+        ) -> outputs.CreateWorkflowOutput:
             user_ctx = self.get_context()
             workflow_id = f"wf_{user_ctx.user_id}_{name.lower().replace(' ', '_')}"
-            return CreateWorkflowOutput(
+            return outputs.CreateWorkflowOutput(
                 workflow_id=workflow_id,
                 name=name,
                 description=description,
@@ -56,9 +55,9 @@ class WorkflowMCPServer(BaseMCPServer):
         async def execute_workflow(
             workflow_id: Annotated[str, Field(description="The ID of the workflow to execute")],
             input_data: Annotated[dict, Field(description="Input data for the workflow execution")] = None,
-        ) -> ExecuteWorkflowOutput:
+        ) -> outputs.ExecuteWorkflowOutput:
             user_ctx = self.get_context()
-            return ExecuteWorkflowOutput(
+            return outputs.ExecuteWorkflowOutput(
                 execution_id=f"exec_{workflow_id}",
                 workflow_id=workflow_id,
                 input_data=input_data or {},
@@ -74,9 +73,9 @@ class WorkflowMCPServer(BaseMCPServer):
         async def get_workflow_status(
             workflow_id: Annotated[str, Field(description="The ID of the workflow to check")],
             execution_id: Annotated[Optional[str], Field(description="Optional specific execution ID to check status for")] = None,
-        ) -> WorkflowStatusOutput:
+        ) -> outputs.WorkflowStatusOutput:
             user_ctx = self.get_context()
-            return WorkflowStatusOutput(
+            return outputs.WorkflowStatusOutput(
                 workflow_id=workflow_id,
                 execution_id=execution_id,
                 status="completed",
@@ -93,9 +92,9 @@ class WorkflowMCPServer(BaseMCPServer):
             limit: Annotated[int, Field(description="Maximum number of workflows to return")] = 10,
             offset: Annotated[int, Field(description="Offset for pagination")] = 0,
             status: Annotated[Optional[str], Field(description="Filter by workflow status")] = None,
-        ) -> ListWorkflowsOutput:
+        ) -> outputs.ListWorkflowsOutput:
             user_ctx = self.get_context()
-            return ListWorkflowsOutput(
+            return outputs.ListWorkflowsOutput(
                 workflows=[],
                 total=0,
                 limit=limit,
@@ -111,9 +110,9 @@ class WorkflowMCPServer(BaseMCPServer):
         )
         async def delete_workflow(
             workflow_id: Annotated[str, Field(description="The ID of the workflow to delete")],
-        ) -> DeleteWorkflowOutput:
+        ) -> outputs.DeleteWorkflowOutput:
             user_ctx = self.get_context()
-            return DeleteWorkflowOutput(
+            return outputs.DeleteWorkflowOutput(
                 workflow_id=workflow_id,
                 status="deleted",
                 deleted_by=user_ctx.user_id,
