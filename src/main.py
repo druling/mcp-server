@@ -52,8 +52,8 @@ app = FastAPI(
 # Register REST API routes
 register_routes(app)
 
-# Mount MCP servers
-app.mount("/workflow", workflow_server.mcp.streamable_http_app())
+# Mount MCP servers (use streamable_http_app() from server, not mcp, to include middleware)
+app.mount("/workflow", workflow_server.streamable_http_app())
 
 origins = ["*"]
 app.add_middleware(

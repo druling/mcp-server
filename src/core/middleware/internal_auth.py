@@ -1,24 +1,25 @@
 import logging
-from typing import Optional
+
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+
+from src.setup.config import config
 
 logger = logging.getLogger(__name__)
 
 
-class InternalAuth:
-    """Internal token authentication handler."""
+class InternalAuthMiddleware(BaseHTTPMiddleware):
+    """Middleware to validate internal auth token from headers."""
 
-    def __init__(self, expected_token: Optional[str] = None):
-        self.expected_token = expected_token
+    async def dispatch(self, request: Request, call_next):
+        token = request.headers.get("X-INTERNAL-AUTH")
 
-    def verify_token(self, token: str) -> bool:
-        """Verify the internal token."""
-        if self.expected_token is None:
-            logger.warning("No expected token configured, skipping verification")
-            return True
-        return token == self.expected_token
+        if token is None or token != config.internal_secret:
+            logger.warning(f"Unauthorized request from {request.client.host if request.client else 'unknown'}")
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Unauthorized connection request"}
+            )
 
-    def authenticate(self, token: str) -> dict:
-        """Authenticate using internal token and return user context."""
-        if not self.verify_token(token):
-            raise ValueError("Invalid internal token")
-        return {"authenticated": True, "token_verified": True}
+        return await call_next(request)
