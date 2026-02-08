@@ -36,7 +36,7 @@ class McpContextMiddleware(BaseHTTPMiddleware):
                 mcp_context_var.reset(token)
         else:
             return JSONResponse(
-                status_code=404,
+                status_code=400,
                 content={"detail": "Missing required headers: X-Profile-ID"}
             )
 

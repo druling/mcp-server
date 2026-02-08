@@ -29,7 +29,7 @@ class WorkflowMCPServer(BaseMCPServer):
             steps: list[dict] = None,
         ) -> dict:
             """Create a new workflow."""
-            user_ctx = self.get_user_context()
+            user_ctx = self.get_context()
             workflow_id = f"wf_{user_ctx.user_id}_{name.lower().replace(' ', '_')}"
             return {
                 "workflow_id": workflow_id,
@@ -47,7 +47,7 @@ class WorkflowMCPServer(BaseMCPServer):
             input_data: dict = None,
         ) -> dict:
             """Execute a workflow by ID."""
-            user_ctx = self.get_user_context()
+            user_ctx = self.get_context()
             return {
                 "execution_id": f"exec_{workflow_id}",
                 "workflow_id": workflow_id,
@@ -62,7 +62,7 @@ class WorkflowMCPServer(BaseMCPServer):
             execution_id: Optional[str] = None,
         ) -> dict:
             """Get the status of a workflow or specific execution."""
-            user_ctx = self.get_user_context()
+            user_ctx = self.get_context()
             return {
                 "workflow_id": workflow_id,
                 "execution_id": execution_id,
@@ -78,7 +78,7 @@ class WorkflowMCPServer(BaseMCPServer):
             status: Optional[str] = None,
         ) -> dict:
             """List all workflows for the current user."""
-            user_ctx = self.get_user_context()
+            user_ctx = self.get_context()
             return {
                 "workflows": [],
                 "total": 0,
@@ -91,7 +91,7 @@ class WorkflowMCPServer(BaseMCPServer):
         @self._mcp.tool()
         async def delete_workflow(workflow_id: str) -> dict:
             """Delete a workflow by ID."""
-            user_ctx = self.get_user_context()
+            user_ctx = self.get_context()
             return {
                 "workflow_id": workflow_id,
                 "status": "deleted",
@@ -105,7 +105,7 @@ class WorkflowMCPServer(BaseMCPServer):
         async def workflow_creation_guide(workflow_type: str = "general") -> str:
             """Get a comprehensive guide for creating workflows."""
             try:
-                user_ctx = self.get_user_context()
+                user_ctx = self.get_context()
                 logger.info(f"Getting workflow creation guide for user: {user_ctx.user_id}")
             except ValueError:
                 logger.info("Getting workflow creation guide (no user context)")

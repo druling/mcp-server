@@ -62,7 +62,7 @@ class BaseMCPServer(ABC):
         app.add_middleware(McpContextMiddleware)
         return app
 
-    def get_user_context(self) -> MCPContext:
+    def get_context(self) -> MCPContext:
         """
         Get user context from the current request.
 
