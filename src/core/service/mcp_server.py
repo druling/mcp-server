@@ -5,7 +5,6 @@ from typing import Optional
 
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
-from mcp.types import Tool, Prompt
 from starlette.applications import Starlette
 
 from src.core.dtos.mcp_context import MCPContext
@@ -20,14 +19,13 @@ class BaseMCPServer(ABC):
 
     Provides:
     - FastMCP initialization
-    - Internal token authentication
-    - User/workspace context management via headers
-    - Abstract methods for tool and prompt registration
+    - Middleware for extracting user context from headers
+    - Abstract method for registering tools
 
-    Headers expected from client:
-    - X-User-ID: The user identifier
-    - X-Secret-ID: The secret/auth identifier
-    - X-Workspace-ID: Optional workspace identifier
+    Middleware:
+    - InternalAuthMiddleware: Validates internal token for authentication
+    - McpContextMiddleware: Extracts user context (user_id, secret_id, workspace_id)
+        from headers and stores in context var.
     """
 
     name: str
@@ -85,11 +83,3 @@ class BaseMCPServer(ABC):
     def _register_prompts(self) -> None:
         """Register prompts with the MCP server. Override in subclasses if needed."""
         pass
-
-    def get_tool_definitions(self) -> list[Tool]:
-        """Get all tool definitions for this server. Override in subclasses."""
-        return []
-
-    def get_prompt_definitions(self) -> list[Prompt]:
-        """Get all prompt definitions for this server. Override in subclasses."""
-        return []
