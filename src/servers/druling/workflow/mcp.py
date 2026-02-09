@@ -4,12 +4,14 @@ from dataclasses import dataclass
 
 from pydantic import Field
 
+from src.clients.backend.client import BackendClient
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
 from src.servers.druling.workflow import outputs
 from src.servers.druling.workflow.prompts import workflow_prompts
 
 logger = logging.getLogger(__name__)
+backend_service = BackendClient()
 
 
 @dataclass
