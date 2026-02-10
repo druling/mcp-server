@@ -19,7 +19,7 @@ class BaseClient:
         self.api_key = config.internal_secret
         self.timeout = timeout
 
-    def _make_request(
+    def make_request(
         self,
         endpoint: str,
         method: str = "GET",

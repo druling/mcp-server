@@ -2,16 +2,14 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 # Pydantic models for structured output
-class CreateWorkflowOutput(BaseModel):
+class WorkflowComponent(BaseModel):
     """Output schema for create_workflow tool."""
-    workflow_id: str = Field(description="Unique identifier for the created workflow")
-    name: str = Field(description="Name of the workflow")
-    description: str = Field(description="Description of the workflow")
-    steps: list[dict] = Field(description="List of workflow steps")
-    created_by: str = Field(description="User ID who created the workflow")
-    entity_id: Optional[str] = Field(default=None, description="Entity ID associated with the workflow")
-    status: str = Field(description="Current status of the workflow")
-
+    id: str = Field(description="Unique identifier for the workflow component")
+    name: str = Field(description="Name of the workflow component")
+    category: str = Field(description="Category of the workflow component")
+    operation: str = Field(description="Operation type of the workflow component")
+    description: Optional[str] = Field(default=None, description="Description of the workflow component")
+    base_cost: Optional[float] = Field(default=None, description="Base cost of the workflow component")
 
 class ExecuteWorkflowOutput(BaseModel):
     """Output schema for execute_workflow tool."""

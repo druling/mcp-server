@@ -11,7 +11,6 @@ from src.servers.druling.workflow import outputs
 from src.servers.druling.workflow.prompts import workflow_prompts
 
 logger = logging.getLogger(__name__)
-backend_service = BackendClient()
 
 
 @dataclass
@@ -19,6 +18,8 @@ class WorkflowMCPServer(BaseMCPServer):
     """MCP Server for Druling Workflow operations."""
 
     name: str = "druling-workflow"
+    backend_service = BackendClient()
+    base_url = "/workflow_component"
 
     def _register_prompts(self) -> None:
         """Register all workflow prompts with the MCP server."""
@@ -28,44 +29,41 @@ class WorkflowMCPServer(BaseMCPServer):
         """Register all workflow tools with the MCP server."""
 
         @self._mcp.tool(
-            description="Create a new workflow with specified name, description, and steps.",
-            meta=mcp_meta("create_workflow"),
+            description="Get all workflow components/nodes that are present in the system.",
+            meta=mcp_meta("get_all_components"),
             structured_output=True,
         )
-        async def create_workflow(
-            name: Annotated[str, Field(description="The name of the workflow")],
-            description: Annotated[str, Field(description="Optional description of the workflow")] = "",
-            steps: Annotated[list[dict], Field(description="List of workflow steps as dictionaries")] = None,
-        ) -> outputs.CreateWorkflowOutput:
-            user_ctx = self.get_context()
-            workflow_id = f"wf_{user_ctx.user_id}_{name.lower().replace(' ', '_')}"
-            return outputs.CreateWorkflowOutput(
-                workflow_id=workflow_id,
-                name=name,
-                description=description,
-                steps=steps or [],
-                created_by=user_ctx.user_id,
-                entity_id=user_ctx.entity_id,
-                status="created",
-            )
+        async def get_all_components() -> list[outputs.WorkflowComponent]:
+            response = self.backend_service.get(f"{self.base_url}/all/")
+            result = []
+            for component in response.data:
+                result.append(outputs.WorkflowComponent(
+                    id=component.get("id"),
+                    name=component.get("name"),
+                    operation=component.get("operation"),
+                    description=component.get("description"),
+                    category=component.get("category"),
+                    base_cost=component.get("base_cost"),
+                ))
+            return result
 
         @self._mcp.tool(
-            description="Execute a workflow by its ID with optional input data.",
-            meta=mcp_meta("execute_workflow"),
+            description="Get a workflow by its ID.",
+            meta=mcp_meta("get_by_id"),
             structured_output=True,
         )
-        async def execute_workflow(
-            workflow_id: Annotated[str, Field(description="The ID of the workflow to execute")],
-            input_data: Annotated[dict, Field(description="Input data for the workflow execution")] = None,
-        ) -> outputs.ExecuteWorkflowOutput:
-            user_ctx = self.get_context()
-            return outputs.ExecuteWorkflowOutput(
-                execution_id=f"exec_{workflow_id}",
-                workflow_id=workflow_id,
-                input_data=input_data or {},
-                status="running",
-                executed_by=user_ctx.user_id,
-            )
+        async def get_by_id(
+            workflow_id: Annotated[str, Field(description="The ID of the workflow to execute")]
+        ) -> outputs.WorkflowComponent:
+            response = self.backend_service.get(f"{self.base_url}/{workflow_id}/")
+            return outputs.WorkflowComponent(
+                    id=response.get("id"),
+                    name=response.get("name"),
+                    operation=response.get("operation"),
+                    description=response.get("description"),
+                    category=response.get("category"),
+                    base_cost=response.get("base_cost"),
+                )
 
         @self._mcp.tool(
             description="Get the status of a workflow or specific execution.",
