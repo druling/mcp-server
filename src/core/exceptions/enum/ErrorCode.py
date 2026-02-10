@@ -1,0 +1,24 @@
+from enum import Enum
+
+
+class ErrorCode(Enum):
+    VALIDATION_ERROR = "VALIDATION_ERROR"  # 400
+    RESOURCE_NOT_FOUND = "RESOURCE_NOT_FOUND"  # 404
+    AUTHENTICATION_ERROR = "AUTHENTICATION_ERROR"  # 401
+    PERMISSION_DENIED = "PERMISSION_DENIED"  # 403
+    CONFLICT_ERROR = "CONFLICT_ERROR"  # 409
+
+    RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED"  # 429
+    PAYMENT_REQUIRED = "PAYMENT_REQUIRED"  # 402
+
+    SERVER_ERROR = "SERVER_ERROR"  # 500
+    SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE"  # 503
+    TIMEOUT_ERROR = "TIMEOUT_ERROR"  # 504
+    DEPENDENCY_ERROR = "DEPENDENCY_ERROR"  # 424
+
+    def __str__(self):
+        return self.value
+
+    @property
+    def value(self) -> str:
+        return super().value
