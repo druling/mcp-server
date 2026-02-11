@@ -25,9 +25,10 @@ class BaseClient:
         method: str = "GET",
         params: Optional[Dict] = None,
         data: Optional[Dict] = None,
+        headers: Optional[Dict] = None,
     ) -> Optional[Dict]:
         url = f"{self.base_url}{endpoint}"
-        headers = {CustomHeader.X_INTERNAL_AUTH.value: f"{self.api_key}"}
+        headers = {CustomHeader.X_INTERNAL_AUTH.value: f"{self.api_key}", **(headers or {})}
 
         try:
             response = requests.request(
