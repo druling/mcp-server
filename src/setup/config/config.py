@@ -6,12 +6,6 @@ class Config(BaseSettings):
     debug: bool = False
     port: int = 8000
 
-    database_name: str = "druling"
-    database_user: str = "druling"
-    database_password: str = "password"
-    database_host: str = "localhost"
-    database_port: int = 5432
-
     internal_secret: str = ""
 
     log_level: str = "INFO"
