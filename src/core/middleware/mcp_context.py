@@ -7,6 +7,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from src.core.dtos.mcp_context import MCPContext
+from src.core.enums.CustomHeader import CustomHeader
 
 logger = logging.getLogger(__name__)
 
@@ -16,10 +17,10 @@ class McpContextMiddleware(BaseHTTPMiddleware):
     """Middleware to extract user context from headers and store in context var."""
 
     async def dispatch(self, request: Request, call_next):
-        user_id = request.headers.get("X-PROFILE-ID")
-        secret_id = request.headers.get("X-SECRET-ID")
-        entity_id = request.headers.get("X-ENTITY-ID")
-        entity_type = request.headers.get("X-ENTITY-TYPE")
+        user_id = request.headers.get(CustomHeader.X_PROFILE_ID.value)
+        secret_id = request.headers.get(CustomHeader.X_SECRET_ID.value)
+        entity_id = request.headers.get(CustomHeader.X_ENTITY_ID.value)
+        entity_type = request.headers.get(CustomHeader.X_ENTITY_TYPE.value)
 
         if user_id:
             user_ctx = MCPContext(

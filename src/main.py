@@ -6,15 +6,14 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.servers.druling.workflow.mcp import WorkflowMCPServer
 from src.setup.api import register_routes
+from src.setup.mcp import mount_mcp_servers, register_mcp_servers
 
 load_dotenv()
 logger = logging.getLogger("mcp_server")
 
 # Global shutdown flag
 shutdown_event = False
-
 
 def signal_handler(signum, frame):
     global shutdown_event
@@ -26,18 +25,12 @@ def signal_handler(signum, frame):
 signal.signal(signal.SIGTERM, signal_handler)
 signal.signal(signal.SIGINT, signal_handler)
 
-# Initialize MCP servers
-workflow_server = WorkflowMCPServer()
-
-
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
     """Combined lifespan to manage MCP session managers."""
     logger.info("Druling MCP Server application starting up...")
     async with contextlib.AsyncExitStack() as stack:
-        await stack.enter_async_context(workflow_server.mcp.session_manager.run())
-        # Add more MCP servers here as needed:
-        # await stack.enter_async_context(another_server.mcp.session_manager.run())
+        await register_mcp_servers(stack)
         yield
     logger.info("Druling MCP Server application shutting down...")
 
@@ -52,8 +45,8 @@ app = FastAPI(
 # Register REST API routes
 register_routes(app)
 
-# Mount MCP servers (use streamable_http_app() from server, not mcp, to include middleware)
-app.mount("/workflow", workflow_server.streamable_http_app())
+# Mount MCP servers
+mount_mcp_servers(app)
 
 origins = ["*"]
 app.add_middleware(
