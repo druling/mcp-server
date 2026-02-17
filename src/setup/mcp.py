@@ -5,15 +5,18 @@ from src.servers.google.gmail.mcp import GmailMCPServer
 workflow_server = WorkflowComponentMCPServer()
 gmail_server = GmailMCPServer()
 
-MCP_PATH = {
+INTERNAL_MCP_PATH = {
     "workflow_component": workflow_server,
+}
+
+INTEGRATION_MCP_PATH = {
     "gmail": gmail_server,
 }
 
-async def register_mcp_servers(stack):
-    for server in MCP_PATH.values():
-        await stack.enter_async_context(server.mcp.session_manager.run())
-
+MCP_PATH = {
+    **INTERNAL_MCP_PATH,
+    **INTEGRATION_MCP_PATH,
+}
 
 def mount_mcp_servers(app):
     """Mount MCP servers to the FastAPI app."""

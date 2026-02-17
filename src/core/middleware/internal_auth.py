@@ -11,16 +11,22 @@ logger = logging.getLogger(__name__)
 
 
 class InternalAuthMiddleware(BaseHTTPMiddleware):
-    """Middleware to validate internal auth token from headers."""
+    def __init__(self, app):
+        super().__init__(app)
+        self.api_key = config.internal_secret
+        self.excluded_paths = {"/health"}
 
     async def dispatch(self, request: Request, call_next):
-        token = request.headers.get(CustomHeader.X_INTERNAL_AUTH.value)
+        # Skip auth for excluded paths
+        path = request.url.path.rstrip('/')
+        if path not in self.excluded_paths:
+            api_key = request.headers.get(CustomHeader.X_INTERNAL_AUTH.value)
+            if api_key != self.api_key:
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": "Unauthorized connection request"}
+                )
+                # return AuthenticationError("Unauthorized access")
 
-        if token is None or token != config.internal_secret:
-            logger.warning(f"Unauthorized request from {request.client.host if request.client else 'unknown'}")
-            return JSONResponse(
-                status_code=401,
-                content={"detail": "Unauthorized connection request"}
-            )
-
-        return await call_next(request)
+        response = await call_next(request)
+        return response
