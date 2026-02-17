@@ -25,9 +25,11 @@ class ToolService:
                 tool_service = INTERNAL_MCP_PATH[tool_name]
             elif tool_name in INTEGRATION_MCP_PATH:
                 tool_service = INTEGRATION_MCP_PATH[tool_name]
+
+            tools = await tool_service.mcp.list_tools()
             return {
-                "tool_name": tool_name,
-                "service": tool_service.mcp.instructions
+                "name": tool_name,
+                "tools": tools
             }
         except Exception as e:
             raise BaseError(f"Error getting tools for service {tool_name}: {e}")
