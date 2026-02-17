@@ -2,6 +2,7 @@ from fastapi import APIRouter
 import logging
 
 from src.app.tool.service import ToolService
+from src.core.api.responses import ResponseFactory
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +14,12 @@ tool_service = ToolService()
 
 @router.get("/all")
 async def all():
-    """Process a text conversation with modern LangChain integration"""
-    return tool_service.all()
+    """Get all tools"""
+    tools = tool_service.all()
+    return ResponseFactory.success(tools)
 
 @router.get("/{tool_name}")
 async def get_service_tools(tool_name: str):
-    """Get tools for a specific service"""
-    return tool_service.get_service_tools(tool_name)
+    """Get details of a specific tool by name"""
+    tool_details = tool_service.get_service_tools(tool_name)
+    return ResponseFactory.success(tool_details)
