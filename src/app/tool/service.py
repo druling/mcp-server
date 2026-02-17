@@ -11,8 +11,8 @@ class ToolService:
         """Get all tools"""
         try:
             return {
-                "internal_tools": [INTERNAL_MCP_PATH.keys()],
-                "integration_tools": [INTEGRATION_MCP_PATH.keys()]
+                "internal_tools": INTERNAL_MCP_PATH.keys(),
+                "integration_tools": INTEGRATION_MCP_PATH.keys()
             }
         except Exception as e:
             raise BaseError(f"Error getting all tools: {e}")

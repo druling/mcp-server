@@ -30,18 +30,18 @@ class BaseResponse(BaseModel):
         if hasattr(data, 'dict') and callable(getattr(data, 'dict')):
             return data.dict()
 
-        # Handle lists of Pydantic models
-        if isinstance(data, list) and data and hasattr(data[0], 'dict'):
-            return [item.dict() if hasattr(item, 'dict') else item for item in data]
-
         # Handle dictionaries with Pydantic models as values
         if isinstance(data, dict):
             return {
-                key: value.dict() if hasattr(value, 'dict') else value
+                key: self._serialize_data(value)
                 for key, value in data.items()
             }
 
-        # For everything else (primitives, lists, dicts), return as-is
+        # Handle iterables (lists, tuples, sets, generators, etc.) but not strings
+        if hasattr(data, '__iter__') and not isinstance(data, (str, bytes, dict)):
+            return [self._serialize_data(item) for item in data]
+
+        # For everything else (primitives), return as-is
         # FastAPI's JSONResponse will handle the serialization
         return data
 

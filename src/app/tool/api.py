@@ -15,11 +15,11 @@ tool_service = ToolService()
 @router.get("/all")
 async def all():
     """Get all tools"""
-    tools = tool_service.all()
+    tools = await tool_service.all()
     return ResponseFactory.success(tools)
 
 @router.get("/{tool_name}")
 async def get_service_tools(tool_name: str):
     """Get details of a specific tool by name"""
-    tool_details = tool_service.get_service_tools(tool_name)
+    tool_details = await tool_service.get_service_tools(tool_name)
     return ResponseFactory.success(tool_details)
