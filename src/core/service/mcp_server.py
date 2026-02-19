@@ -29,6 +29,9 @@ class BaseMCPServer(ABC):
     """
 
     name: str
+    category: str
+    description: str
+    scope: str
     version: str = "1.0.0"
     internal_token: Optional[str] = None
     _mcp: FastMCP = field(init=False)
