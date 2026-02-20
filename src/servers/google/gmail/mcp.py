@@ -18,6 +18,9 @@ class GmailMCPServer(BaseMCPServer):
     """MCP Server for Workflow component."""
 
     name: str = "gmail"
+    category: str = "Gmail"
+    description: str = "Gmail integration for reading emails and performing actions on Gmail accounts."
+    scope: str = "gmail_access"
     backend_service = BackendClient()
     base_url = "/google/gmail"
 
@@ -31,7 +34,7 @@ class GmailMCPServer(BaseMCPServer):
         @self._mcp.tool(
             description="Read all emails in the user's Gmail account.",
             meta=mcp_meta("read_emails"),
-            structured_output=True,
+            structured_output=True
         )
         async def read_emails(
                 query: Annotated[str, Field(description="Search query to filter emails (e.g., 'from:name@example.com' or 'subject:meeting')")],

@@ -18,6 +18,10 @@ class WorkflowComponentMCPServer(BaseMCPServer):
     """MCP Server for Workflow component."""
 
     name: str = "workflow_component"
+    category: str = "Workflow"
+    description: str = "Manage and retrieve workflow components/nodes that can be used in building workflows."
+    scope: str = ""
+
     backend_service = BackendClient()
     base_url = "/workflow_component"
 
