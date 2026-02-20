@@ -29,6 +29,9 @@ class ToolService:
             tools = await tool_service.mcp.list_tools()
             return {
                 "name": tool_name,
+                "category": tool_service.category,
+                "description": tool_service.description,
+                "scope": tool_service.scope,
                 "tools": tools
             }
         except Exception as e:
