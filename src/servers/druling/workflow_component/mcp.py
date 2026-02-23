@@ -8,13 +8,13 @@ from src.clients.backend.client import BackendClient
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
 from src.servers.druling.workflow_component import outputs
-from src.servers.druling.workflow_component.prompts import workflow_prompts
+from .prompts import prompts
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class WorkflowComponentMCPServer(BaseMCPServer):
+class WorkflowComponentServer(BaseMCPServer):
     """MCP Server for Workflow component."""
 
     name: str = "workflow_component"
@@ -26,11 +26,11 @@ class WorkflowComponentMCPServer(BaseMCPServer):
     base_url = "/workflow_component"
 
     def _register_prompts(self) -> None:
-        """Register all workflow prompts with the MCP server."""
-        workflow_prompts(self._mcp, self.get_context)
+        """Register all Workflow Component prompts with the MCP server."""
+        prompts(self._mcp, self.get_context)
 
     def _register_tools(self) -> None:
-        """Register all workflow tools with the MCP server."""
+        """Register all Workflow Component tools with the MCP server."""
 
         @self._mcp.tool(
             description="Get all workflow components/nodes that are present in the system.",

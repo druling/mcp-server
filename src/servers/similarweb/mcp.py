@@ -1,0 +1,48 @@
+import logging
+from typing import Annotated
+from dataclasses import dataclass
+
+from pydantic import Field
+
+from src.clients.backend.client import BackendClient
+from src.core.service import BaseMCPServer
+from src.core.utils.mcp_tool_meta import mcp_meta
+from . import outputs
+from .prompts import prompts
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class SimilarwebServer(BaseMCPServer):
+    """MCP Server for Similarweb."""
+
+    name: str = "similarweb"
+    category: str = "Similarweb"
+    description: str = "Similarweb integration for website analytics and market intelligence."
+    scope: str = "similarweb_access"
+    backend_service = BackendClient()
+    base_url = "/similarweb"
+
+    def _register_prompts(self) -> None:
+        """Register all Similarweb prompts with the MCP server."""
+        prompts(self._mcp, self.get_context)
+
+    def _register_tools(self) -> None:
+        """Register all Similarweb tools with the MCP server."""
+
+        @self._mcp.tool(
+            description="Get company and website analytics information by domain.",
+            meta=mcp_meta("get_company_by_domain"),
+            structured_output=True
+        )
+        async def get_company_by_domain(
+            domain: Annotated[str, Field(description="Company domain (e.g., 'example.com')")]
+        ) -> outputs.CompanyInfo:
+            context = self.get_context()
+            response = self.backend_service.post(
+                f"{self.base_url}/company/domain/",
+                data={"domain": domain},
+                context=context
+            )
+            return outputs.CompanyInfo(**response.data)
