@@ -1,5 +1,5 @@
 import logging
-from typing import Annotated
+from typing import Annotated, Optional, Dict
 from dataclasses import dataclass
 
 from pydantic import Field
@@ -7,7 +7,7 @@ from pydantic import Field
 from src.clients.backend.client import BackendClient
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from src.servers.google.gmail import outputs
+from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -32,21 +32,143 @@ class GoogleDocsServer(BaseMCPServer):
         """Register all Google Docs tools with the MCP server."""
 
         @self._mcp.tool(
-            description="Read all emails in the user's Gmail account.",
-            meta=mcp_meta("read_emails"),
+            description="Read a Google Doc document by ID or URL.",
+            meta=mcp_meta("read_document"),
             structured_output=True
         )
-        async def read_emails(
-                query: Annotated[str, Field(description="Search query to filter emails (e.g., 'from:name@example.com' or 'subject:meeting')")],
-                max_results: Annotated[int, Field(description="Maximum number of emails to retrieve")] = 10
-        ) -> outputs.ListGmailRead:
+        async def read_document(
+            document_id: Annotated[Optional[str], Field(description="The ID of the document to read")] = None,
+            document_url: Annotated[Optional[str], Field(description="The URL of the document to read")] = None,
+            tabs: Annotated[Optional[list[str]], Field(description="List of tab IDs to read (optional)")] = None
+        ) -> outputs.DocumentRead:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/read/",
                 data={
-                "query": query,
-                "max_results": max_results
-            }, context=context)
+                    "document_id": document_id,
+                    "document_url": document_url,
+                    "tabs": tabs
+                },
+                context=context
+            )
+            return outputs.DocumentRead(**response.data)
 
-            result: list[outputs.GmailRead] = response.data
-            return outputs.ListGmailRead(result=result)
+        @self._mcp.tool(
+            description="Create a new Google Doc document.",
+            meta=mcp_meta("create_document"),
+            structured_output=True
+        )
+        async def create_document(
+            title: Annotated[str, Field(description="Title of the new document")],
+            content: Annotated[Optional[str], Field(description="Initial content for the document")] = "",
+            format_type: Annotated[Optional[str], Field(description="Format type: 'plain_text' or 'html'")] = "plain_text",
+            folder_id: Annotated[Optional[str], Field(description="Google Drive folder ID to create the document in")] = None,
+            mark_as_public: Annotated[Optional[bool], Field(description="Whether to make the document publicly accessible")] = False
+        ) -> outputs.DocumentCreate:
+            context = self.get_context()
+            response = self.backend_service.post(
+                f"{self.base_url}/create/",
+                data={
+                    "title": title,
+                    "content": content,
+                    "format_type": format_type,
+                    "folder_id": folder_id,
+                    "mark_as_public": mark_as_public
+                },
+                context=context
+            )
+            return outputs.DocumentCreate(**response.data)
+
+        @self._mcp.tool(
+            description="Update an existing Google Doc document with new content.",
+            meta=mcp_meta("update_document"),
+            structured_output=True
+        )
+        async def update_document(
+            content: Annotated[str, Field(description="Content to add to the document")],
+            document_id: Annotated[Optional[str], Field(description="The ID of the document to update")] = None,
+            document_url: Annotated[Optional[str], Field(description="The URL of the document to update")] = None,
+            format_type: Annotated[Optional[str], Field(description="Format type: 'plain_text' or 'html'")] = "plain_text",
+            upsert_start: Annotated[Optional[bool], Field(description="Whether to insert content at the start (True) or end (False)")] = True
+        ) -> outputs.DocumentUpdate:
+            context = self.get_context()
+            response = self.backend_service.post(
+                f"{self.base_url}/update/",
+                data={
+                    "document_id": document_id,
+                    "document_url": document_url,
+                    "content": content,
+                    "format_type": format_type,
+                    "upsert_start": upsert_start
+                },
+                context=context
+            )
+            return outputs.DocumentUpdate(**response.data)
+
+        @self._mcp.tool(
+            description="List all tabs in a Google Doc document.",
+            meta=mcp_meta("list_document_tabs"),
+            structured_output=True
+        )
+        async def list_document_tabs(
+            document_id: Annotated[Optional[str], Field(description="The ID of the document")] = None,
+            document_url: Annotated[Optional[str], Field(description="The URL of the document")] = None
+        ) -> outputs.TabList:
+            context = self.get_context()
+            response = self.backend_service.post(
+                f"{self.base_url}/list_tabs/",
+                data={
+                    "document_id": document_id,
+                    "document_url": document_url
+                },
+                context=context
+            )
+            return outputs.TabList(**response.data)
+
+        @self._mcp.tool(
+            description="Create a new document from a template with placeholder replacements.",
+            meta=mcp_meta("create_from_template"),
+            structured_output=True
+        )
+        async def create_from_template(
+            document_name: Annotated[str, Field(description="Name for the new document")],
+            template_id: Annotated[Optional[str], Field(description="The ID of the template document")] = None,
+            template_url: Annotated[Optional[str], Field(description="The URL of the template document")] = None,
+            placeholders: Annotated[Optional[Dict[str, str]], Field(description="Dictionary of placeholder replacements (e.g., {'{{name}}': 'John Doe'})")] = None,
+            folder_id: Annotated[Optional[str], Field(description="Google Drive folder ID to create the document in")] = None,
+            make_public: Annotated[Optional[bool], Field(description="Whether to make the document publicly accessible")] = False
+        ) -> outputs.DocumentCreate:
+            context = self.get_context()
+            response = self.backend_service.post(
+                f"{self.base_url}/create_from_template/",
+                data={
+                    "template_id": template_id,
+                    "template_url": template_url,
+                    "placeholders": placeholders or {},
+                    "document_name": document_name,
+                    "folder_id": folder_id,
+                    "make_public": make_public
+                },
+                context=context
+            )
+            return outputs.DocumentCreate(**response.data)
+
+        @self._mcp.tool(
+            description="Find all placeholders in a Google Doc template.",
+            meta=mcp_meta("find_placeholders"),
+            structured_output=True
+        )
+        async def find_placeholders(
+            template_id: Annotated[Optional[str], Field(description="The ID of the template document")] = None,
+            template_url: Annotated[Optional[str], Field(description="The URL of the template document")] = None
+        ) -> outputs.PlaceholderList:
+            context = self.get_context()
+            response = self.backend_service.post(
+                f"{self.base_url}/find_placeholders/",
+                data={
+                    "template_id": template_id,
+                    "template_url": template_url
+                },
+                context=context
+            )
+            return outputs.PlaceholderList(**response.data)
