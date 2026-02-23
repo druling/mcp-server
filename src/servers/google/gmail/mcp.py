@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class GmailMCPServer(BaseMCPServer):
-    """MCP Server for Workflow component."""
+    """MCP Server for Gmail."""
 
     name: str = "gmail"
     category: str = "Gmail"
@@ -25,11 +25,11 @@ class GmailMCPServer(BaseMCPServer):
     base_url = "/google/gmail"
 
     def _register_prompts(self) -> None:
-        """Register all workflow prompts with the MCP server."""
+        """Register all gmail prompts with the MCP server."""
         gmail_prompts(self._mcp, self.get_context)
 
     def _register_tools(self) -> None:
-        """Register all workflow tools with the MCP server."""
+        """Register all gmail tools with the MCP server."""
 
         @self._mcp.tool(
             description="Read all emails in the user's Gmail account.",
