@@ -10,9 +10,31 @@ class ToolService:
     async def all(self):
         """Get all tools"""
         try:
+            internal_tools = [
+                {
+                    "name": tool_name,
+                    "category": tool_service.category,
+                    "description": tool_service.description,
+                    "scope": tool_service.scope,
+                    "no_of_tools": len(await tool_service.mcp.list_tools())
+                }
+                for tool_name, tool_service in INTERNAL_MCP_SERVERS.items()
+            ]
+
+            integration_tools = [
+                {
+                    "name": tool_name,
+                    "category": tool_service.category,
+                    "description": tool_service.description,
+                    "scope": tool_service.scope,
+                    "no_of_tools": len(await tool_service.mcp.list_tools())
+                }
+                for tool_name, tool_service in INTEGRATION_MCP_SERVERS.items()
+            ]
+
             return {
-                "internal_tools": INTERNAL_MCP_SERVERS.keys(),
-                "integration_tools": INTEGRATION_MCP_SERVERS.keys()
+                "internal_tools": internal_tools,
+                "integration_tools": integration_tools
             }
         except Exception as e:
             raise BaseError(f"Error getting all tools: {e}")
