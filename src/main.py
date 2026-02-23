@@ -9,7 +9,7 @@ from requests import Request
 
 from src.core.exceptions import BaseError
 from src.setup.api import register_routes
-from src.setup.mcp import mount_mcp_servers, MCP_PATH
+from src.setup.mcp import mount_mcp_servers, MCP_SERVERS
 from src.core.middleware import InternalAuthMiddleware, RequestIDMiddleware, ExceptionHandlers
 
 load_dotenv()
@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
     """Combined lifespan to manage MCP session managers."""
     logger.info("Druling MCP Server application starting up...")
     async with contextlib.AsyncExitStack() as stack:
-        for server in MCP_PATH.values():
+        for server in MCP_SERVERS.values():
             await stack.enter_async_context(server.mcp.session_manager.run())
         yield
     logger.info("Druling MCP Server application shutting down...")
