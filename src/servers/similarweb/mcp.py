@@ -7,7 +7,7 @@ from pydantic import Field
 from src.clients.backend.client import BackendClient
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from src.servers.google.gmail import outputs
+from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -32,21 +32,17 @@ class SimilarwebServer(BaseMCPServer):
         """Register all Similarweb tools with the MCP server."""
 
         @self._mcp.tool(
-            description="Read all emails in the user's Gmail account.",
-            meta=mcp_meta("read_emails"),
+            description="Get company and website analytics information by domain.",
+            meta=mcp_meta("get_company_by_domain"),
             structured_output=True
         )
-        async def read_emails(
-                query: Annotated[str, Field(description="Search query to filter emails (e.g., 'from:name@example.com' or 'subject:meeting')")],
-                max_results: Annotated[int, Field(description="Maximum number of emails to retrieve")] = 10
-        ) -> outputs.ListGmailRead:
+        async def get_company_by_domain(
+            domain: Annotated[str, Field(description="Company domain (e.g., 'example.com')")]
+        ) -> outputs.CompanyInfo:
             context = self.get_context()
             response = self.backend_service.post(
-                f"{self.base_url}/read/",
-                data={
-                "query": query,
-                "max_results": max_results
-            }, context=context)
-
-            result: list[outputs.GmailRead] = response.data
-            return outputs.ListGmailRead(result=result)
+                f"{self.base_url}/company/domain/",
+                data={"domain": domain},
+                context=context
+            )
+            return outputs.CompanyInfo(**response.data)

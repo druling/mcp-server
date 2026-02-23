@@ -1,5 +1,5 @@
 import logging
-from typing import Annotated
+from typing import Annotated, Optional
 from dataclasses import dataclass
 
 from pydantic import Field
@@ -7,7 +7,7 @@ from pydantic import Field
 from src.clients.backend.client import BackendClient
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from src.servers.google.gmail import outputs
+from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -32,21 +32,33 @@ class HunterServer(BaseMCPServer):
         """Register all Hunter tools with the MCP server."""
 
         @self._mcp.tool(
-            description="Read all emails in the user's Gmail account.",
-            meta=mcp_meta("read_emails"),
+            description="Find and verify contact information using Hunter's email finder.",
+            meta=mcp_meta("get_contact_info"),
             structured_output=True
         )
-        async def read_emails(
-                query: Annotated[str, Field(description="Search query to filter emails (e.g., 'from:name@example.com' or 'subject:meeting')")],
-                max_results: Annotated[int, Field(description="Maximum number of emails to retrieve")] = 10
-        ) -> outputs.ListGmailRead:
+        async def get_contact_info(
+            domain: Annotated[Optional[str], Field(description="Company domain")] = None,
+            first_name: Annotated[Optional[str], Field(description="Contact's first name")] = None,
+            last_name: Annotated[Optional[str], Field(description="Contact's last name")] = None,
+            email: Annotated[Optional[str], Field(description="Email address to verify")] = None,
+            job_title: Annotated[Optional[str], Field(description="Contact's job title")] = None,
+            company: Annotated[Optional[str], Field(description="Company name")] = None,
+            linkedin: Annotated[Optional[str], Field(description="LinkedIn profile URL")] = None,
+            per_page: Annotated[Optional[int], Field(description="Number of contacts per page")] = 10
+        ) -> outputs.ContactList:
             context = self.get_context()
             response = self.backend_service.post(
-                f"{self.base_url}/read/",
+                f"{self.base_url}/contacts/",
                 data={
-                "query": query,
-                "max_results": max_results
-            }, context=context)
-
-            result: list[outputs.GmailRead] = response.data
-            return outputs.ListGmailRead(result=result)
+                    "domain": domain,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "email": email,
+                    "job_title": job_title,
+                    "company": company,
+                    "linkedin": linkedin,
+                    "per_page": per_page
+                },
+                context=context
+            )
+            return outputs.ContactList(**response.data)

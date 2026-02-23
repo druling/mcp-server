@@ -1,5 +1,5 @@
 import logging
-from typing import Annotated
+from typing import Annotated, Optional, List, Dict, Any
 from dataclasses import dataclass
 
 from pydantic import Field
@@ -7,7 +7,7 @@ from pydantic import Field
 from src.clients.backend.client import BackendClient
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from src.servers.google.gmail import outputs
+from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -32,21 +32,77 @@ class FirecrawlServer(BaseMCPServer):
         """Register all Firecrawl tools with the MCP server."""
 
         @self._mcp.tool(
-            description="Read all emails in the user's Gmail account.",
-            meta=mcp_meta("read_emails"),
+            description="Scrape a single web page to extract content, text, and links.",
+            meta=mcp_meta("scrape"),
             structured_output=True
         )
-        async def read_emails(
-                query: Annotated[str, Field(description="Search query to filter emails (e.g., 'from:name@example.com' or 'subject:meeting')")],
-                max_results: Annotated[int, Field(description="Maximum number of emails to retrieve")] = 10
-        ) -> outputs.ListGmailRead:
+        async def scrape(
+            url: Annotated[str, Field(description="URL to scrape")],
+            timeout: Annotated[Optional[int], Field(description="Timeout in seconds")] = None,
+            stealth: Annotated[Optional[bool], Field(description="Use stealth mode to avoid detection")] = False,
+            actions: Annotated[Optional[List[Dict[str, Any]]], Field(description="Browser actions to perform")] = None,
+            mobile: Annotated[Optional[bool], Field(description="Use mobile user agent")] = False,
+            all_links: Annotated[Optional[bool], Field(description="Extract all links from the page")] = True,
+            raw_html: Annotated[Optional[bool], Field(description="Include raw HTML in response")] = False
+        ) -> outputs.ScrapeResult:
             context = self.get_context()
             response = self.backend_service.post(
-                f"{self.base_url}/read/",
+                f"{self.base_url}/scrape/",
                 data={
-                "query": query,
-                "max_results": max_results
-            }, context=context)
+                    "url": url,
+                    "timeout": timeout,
+                    "stealth": stealth,
+                    "actions": actions,
+                    "mobile": mobile,
+                    "all_links": all_links,
+                    "raw_html": raw_html
+                },
+                context=context
+            )
+            return outputs.ScrapeResult(**response.data)
 
-            result: list[outputs.GmailRead] = response.data
-            return outputs.ListGmailRead(result=result)
+        @self._mcp.tool(
+            description="Crawl a website to scrape multiple pages starting from a root URL.",
+            meta=mcp_meta("crawl"),
+            structured_output=True
+        )
+        async def crawl(
+            url: Annotated[str, Field(description="Root URL to start crawling from")],
+            depth: Annotated[Optional[int], Field(description="Maximum crawl depth")] = 1,
+            allow_external: Annotated[Optional[bool], Field(description="Allow crawling external links")] = True
+        ) -> outputs.CrawlResult:
+            context = self.get_context()
+            response = self.backend_service.post(
+                f"{self.base_url}/crawl/",
+                data={
+                    "url": url,
+                    "depth": depth,
+                    "allow_external": allow_external
+                },
+                context=context
+            )
+            return outputs.CrawlResult(**response.data)
+
+        @self._mcp.tool(
+            description="Search for job listings from various sources.",
+            meta=mcp_meta("search_jobs"),
+            structured_output=True
+        )
+        async def search_jobs(
+            source: Annotated[str, Field(description="Job board source (e.g., 'indeed', 'linkedin')")],
+            keyword: Annotated[str, Field(description="Job search keyword or title")],
+            location: Annotated[str, Field(description="Job location")],
+            max_jobs: Annotated[Optional[int], Field(description="Maximum number of jobs to retrieve")] = 30
+        ) -> outputs.JobList:
+            context = self.get_context()
+            response = self.backend_service.post(
+                f"{self.base_url}/jobs/search/",
+                data={
+                    "source": source,
+                    "keyword": keyword,
+                    "location": location,
+                    "max_jobs": max_jobs
+                },
+                context=context
+            )
+            return outputs.JobList(**response.data)
