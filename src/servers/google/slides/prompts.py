@@ -2,9 +2,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def gmail_prompts(mcp, ctx) -> None:
-    """Register all gmail prompts with the MCP server."""
+def prompts(mcp, ctx) -> None:
+    """Register all Google Slides prompts with the MCP server."""
 
     @mcp.prompt()
-    async def gmail_guide() -> str:
-        return f"Guide for creating sending emails with Gmail API..."
+    async def google_slides_guide() -> str:
+        return f"Guide for managing presentations with Google Slides API..."

@@ -8,28 +8,28 @@ from src.clients.backend.client import BackendClient
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
 from src.servers.google.gmail import outputs
-from src.servers.google.gmail.prompts import gmail_prompts
+from .prompts import prompts
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class GoogleDriveServer(BaseMCPServer):
-    """MCP Server for Workflow component."""
+    """MCP Server for Google Drive."""
 
-    name: str = "google_docs"
-    category: str = "Google Docs"
-    description: str = "Google Docs integration for reading and managing documents in Google Drive."
-    scope: str = "google_docs_access"
+    name: str = "google_drive"
+    category: str = "Google Drive"
+    description: str = "Google Drive integration for managing files and folders in Google Drive."
+    scope: str = "google_drive_access"
     backend_service = BackendClient()
-    base_url = "/google/docs"
+    base_url = "/google/drive"
 
     def _register_prompts(self) -> None:
-        """Register all workflow prompts with the MCP server."""
-        gmail_prompts(self._mcp, self.get_context)
+        """Register all Google Drive prompts with the MCP server."""
+        prompts(self._mcp, self.get_context)
 
     def _register_tools(self) -> None:
-        """Register all workflow tools with the MCP server."""
+        """Register all Google Drive tools with the MCP server."""
 
         @self._mcp.tool(
             description="Read all emails in the user's Gmail account.",

@@ -15,21 +15,21 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ApolloServer(BaseMCPServer):
-    """MCP Server for Workflow component."""
+    """MCP Server for Apollo."""
 
-    name: str = "google_docs"
-    category: str = "Google Docs"
-    description: str = "Google Docs integration for reading and managing documents in Google Drive."
-    scope: str = "google_docs_access"
+    name: str = "apollo"
+    category: str = "Apollo"
+    description: str = "Apollo integration for accessing contact and company data."
+    scope: str = "apollo_access"
     backend_service = BackendClient()
-    base_url = "/google/docs"
+    base_url = "/apollo"
 
     def _register_prompts(self) -> None:
-        """Register all workflow prompts with the MCP server."""
+        """Register all Apollo prompts with the MCP server."""
         prompts(self._mcp, self.get_context)
 
     def _register_tools(self) -> None:
-        """Register all workflow tools with the MCP server."""
+        """Register all Apollo tools with the MCP server."""
 
         @self._mcp.tool(
             description="Read all emails in the user's Gmail account.",

@@ -2,8 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def gmail_prompts(mcp, ctx) -> None:
-    """Register all gmail prompts with the MCP server."""
+def prompts(mcp, ctx) -> None:
+    """Register all Gmail prompts with the MCP server."""
 
     @mcp.prompt()
     async def gmail_guide() -> str:

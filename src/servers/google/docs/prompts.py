@@ -7,4 +7,4 @@ def prompts(mcp, ctx) -> None:
 
     @mcp.prompt()
     async def google_docs_guide() -> str:
-        return f"Guide for creating sending emails with Gmail API..."
+        return f"Guide for reading and managing documents with Google Docs API..."

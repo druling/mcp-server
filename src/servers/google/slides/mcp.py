@@ -8,28 +8,28 @@ from src.clients.backend.client import BackendClient
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
 from src.servers.google.gmail import outputs
-from src.servers.google.gmail.prompts import gmail_prompts
+from .prompts import prompts
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class GoogleSlideServer(BaseMCPServer):
-    """MCP Server for Workflow component."""
+    """MCP Server for Google Slides."""
 
-    name: str = "google_docs"
-    category: str = "Google Docs"
-    description: str = "Google Docs integration for reading and managing documents in Google Drive."
-    scope: str = "google_docs_access"
+    name: str = "google_slides"
+    category: str = "Google Slides"
+    description: str = "Google Slides integration for managing presentations."
+    scope: str = "google_slides_access"
     backend_service = BackendClient()
-    base_url = "/google/docs"
+    base_url = "/google/slides"
 
     def _register_prompts(self) -> None:
-        """Register all workflow prompts with the MCP server."""
-        gmail_prompts(self._mcp, self.get_context)
+        """Register all Google Slides prompts with the MCP server."""
+        prompts(self._mcp, self.get_context)
 
     def _register_tools(self) -> None:
-        """Register all workflow tools with the MCP server."""
+        """Register all Google Slides tools with the MCP server."""
 
         @self._mcp.tool(
             description="Read all emails in the user's Gmail account.",
