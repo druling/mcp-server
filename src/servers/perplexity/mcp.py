@@ -17,7 +17,7 @@ class PerplexityServer(BaseMCPServer):
     name: str = "perplexity"
     category: str = "Perplexity"
     description: str = "Perplexity integration for AI-powered search and research."
-    scope: str = "perplexity_access"
+    scope: str = "perplexity_access_key"
     backend_service = BackendClient()
     base_url = "/perplexity"
 

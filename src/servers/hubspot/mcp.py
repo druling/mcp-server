@@ -15,21 +15,21 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class HubspotServer(BaseMCPServer):
-    """MCP Server for Hubspot."""
+    """MCP Server for HubSpot."""
 
     name: str = "hubspot"
-    category: str = "Hubspot"
-    description: str = "Hubspot integration for CRM and marketing automation."
+    category: str = "HubSpot"
+    description: str = "HubSpot integration for CRM and marketing automation."
     scope: str = "hubspot_access"
     backend_service = BackendClient()
     base_url = "/hubspot"
 
     def _register_prompts(self) -> None:
-        """Register all Hubspot prompts with the MCP server."""
+        """Register all HubSpot prompts with the MCP server."""
         prompts(self._mcp, self.get_context)
 
     def _register_tools(self) -> None:
-        """Register all Hubspot tools with the MCP server."""
+        """Register all HubSpot tools with the MCP server."""
 
         @self._mcp.tool(
             description="Get properties for a HubSpot object type (contacts, companies, deals, etc.).",
