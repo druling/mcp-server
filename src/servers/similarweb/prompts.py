@@ -7,4 +7,22 @@ def prompts(mcp, ctx) -> None:
 
     @mcp.prompt()
     async def similarweb_guide() -> str:
-        return f"Guide for website analytics and market intelligence with Similarweb API..."
+        return """Guide for using Similarweb API for website analytics:
+        
+        Similarweb provides comprehensive website analytics and market intelligence:
+        - Get traffic statistics for any website
+        - Analyze competitor performance
+        - Understand traffic sources and audience demographics
+        
+        Key capabilities:
+        1. Company Info by Domain: Get detailed website analytics
+        2. Traffic Analysis: Monthly visits, bounce rate, time on site
+        3. Rankings: Global and country-specific website rankings
+        4. Traffic Sources: Direct, search, social, referral breakdown
+        
+        Use cases:
+        - Competitive analysis
+        - Market research
+        - Lead qualification
+        - Partnership opportunities
+        """

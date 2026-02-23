@@ -7,7 +7,7 @@ from pydantic import Field
 from src.clients.backend.client import BackendClient
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from src.servers.google.gmail import outputs
+from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -32,21 +32,17 @@ class ZerobounceServer(BaseMCPServer):
         """Register all Zerobounce tools with the MCP server."""
 
         @self._mcp.tool(
-            description="Read all emails in the user's Gmail account.",
-            meta=mcp_meta("read_emails"),
+            description="Validate an email address to check if it's valid and deliverable.",
+            meta=mcp_meta("validate_email"),
             structured_output=True
         )
-        async def read_emails(
-                query: Annotated[str, Field(description="Search query to filter emails (e.g., 'from:name@example.com' or 'subject:meeting')")],
-                max_results: Annotated[int, Field(description="Maximum number of emails to retrieve")] = 10
-        ) -> outputs.ListGmailRead:
+        async def validate_email(
+            email: Annotated[str, Field(description="Email address to validate")]
+        ) -> outputs.EmailValidation:
             context = self.get_context()
             response = self.backend_service.post(
-                f"{self.base_url}/read/",
-                data={
-                "query": query,
-                "max_results": max_results
-            }, context=context)
-
-            result: list[outputs.GmailRead] = response.data
-            return outputs.ListGmailRead(result=result)
+                f"{self.base_url}/validate/",
+                data={"email": email},
+                context=context
+            )
+            return outputs.EmailValidation(email=email, is_valid=response.data.get("is_valid", False))
