@@ -1,9 +1,9 @@
-from src.servers.druling.workflow_component.mcp import WorkflowComponentMCPServer
-from src.servers.google.gmail.mcp import GmailMCPServer
+from src.servers.druling.workflow_component.mcp import WorkflowComponentServer
+from src.servers.google.gmail.mcp import GmailServer
 
 # Initialize MCP servers
-workflow_server = WorkflowComponentMCPServer()
-gmail_server = GmailMCPServer()
+workflow_server = WorkflowComponentServer()
+gmail_server = GmailServer()
 
 INTERNAL_MCP_PATH = {
     "workflow_component": workflow_server,

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class DocsMCPServer(BaseMCPServer):
+class GoogleDriveServer(BaseMCPServer):
     """MCP Server for Workflow component."""
 
     name: str = "google_docs"

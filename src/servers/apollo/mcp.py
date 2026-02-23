@@ -8,13 +8,13 @@ from src.clients.backend.client import BackendClient
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
 from src.servers.google.gmail import outputs
-from src.servers.google.gmail.prompts import gmail_prompts
+from .prompts import prompts
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class DocsMCPServer(BaseMCPServer):
+class ApolloServer(BaseMCPServer):
     """MCP Server for Workflow component."""
 
     name: str = "google_docs"
@@ -26,7 +26,7 @@ class DocsMCPServer(BaseMCPServer):
 
     def _register_prompts(self) -> None:
         """Register all workflow prompts with the MCP server."""
-        gmail_prompts(self._mcp, self.get_context)
+        prompts(self._mcp, self.get_context)
 
     def _register_tools(self) -> None:
         """Register all workflow tools with the MCP server."""

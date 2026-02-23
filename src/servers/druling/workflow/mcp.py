@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class WorkflowComponentMCPServer(BaseMCPServer):
+class WorkflowServer(BaseMCPServer):
     """MCP Server for Workflow component."""
 
     name: str = "workflow_component"

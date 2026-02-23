@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class GmailMCPServer(BaseMCPServer):
+class GmailServer(BaseMCPServer):
     """MCP Server for Gmail."""
 
     name: str = "gmail"
