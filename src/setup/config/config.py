@@ -11,7 +11,7 @@ class Config(BaseSettings):
     log_level: str = "INFO"
     log_format: str = "standard"
 
-    backend_url: str = "http://localhost:8000/internal/v1"
+    backend_url: str = "http://localhost:8000"
     timeout: int = 60
     max_retries: int = 3
 
