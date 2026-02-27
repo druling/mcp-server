@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated, Optional, Dict, List, Any
 from dataclasses import dataclass
@@ -5,9 +6,9 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
+from src.core.outputs import Output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ class GoogleSheetServer(BaseMCPServer):
             values: Annotated[Dict[str, Any], Field(description="Dictionary of column headers and values to add")],
             spreadsheet_id: Annotated[Optional[str], Field(description="The ID of the spreadsheet")] = None,
             spreadsheet_url: Annotated[Optional[str], Field(description="The URL of the spreadsheet")] = None
-        ) -> outputs.SheetCreate:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/create/",
@@ -53,7 +54,7 @@ class GoogleSheetServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.SheetCreate(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Read data from a Google Sheet with optional filtering.",
@@ -70,7 +71,7 @@ class GoogleSheetServer(BaseMCPServer):
             num_rows: Annotated[Optional[int], Field(description="Number of rows to return")] = None,
             preserve_formatting: Annotated[Optional[bool], Field(description="Whether to preserve cell formatting")] = False,
             reverse: Annotated[Optional[bool], Field(description="Whether to reverse the order of rows")] = False
-        ) -> outputs.SheetData:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/list/",
@@ -87,7 +88,7 @@ class GoogleSheetServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.SheetData(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Get list of all sheets in a spreadsheet.",
@@ -97,7 +98,7 @@ class GoogleSheetServer(BaseMCPServer):
         async def get_sheets(
             spreadsheet_id: Annotated[Optional[str], Field(description="The ID of the spreadsheet")] = None,
             spreadsheet_url: Annotated[Optional[str], Field(description="The URL of the spreadsheet")] = None
-        ) -> outputs.SheetList:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/sheets/",
@@ -107,7 +108,7 @@ class GoogleSheetServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.SheetList(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Get column names from a sheet.",
@@ -118,7 +119,7 @@ class GoogleSheetServer(BaseMCPServer):
             sheet_name: Annotated[str, Field(description="Name of the sheet")],
             spreadsheet_id: Annotated[Optional[str], Field(description="The ID of the spreadsheet")] = None,
             spreadsheet_url: Annotated[Optional[str], Field(description="The URL of the spreadsheet")] = None
-        ) -> outputs.ColumnList:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/batch/get/",
@@ -129,7 +130,7 @@ class GoogleSheetServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.ColumnList(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Update rows in a sheet based on filter criteria.",
@@ -144,7 +145,7 @@ class GoogleSheetServer(BaseMCPServer):
             spreadsheet_id: Annotated[Optional[str], Field(description="The ID of the spreadsheet")] = None,
             spreadsheet_url: Annotated[Optional[str], Field(description="The URL of the spreadsheet")] = None,
             upsert: Annotated[Optional[bool], Field(description="Whether to insert a new row if no match is found")] = False
-        ) -> outputs.SheetCreate:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/batch/update/",
@@ -159,7 +160,7 @@ class GoogleSheetServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.SheetCreate(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Append values to a specific column in a sheet.",
@@ -172,7 +173,7 @@ class GoogleSheetServer(BaseMCPServer):
             values: Annotated[List[Any], Field(description="List of values to append")],
             spreadsheet_id: Annotated[Optional[str], Field(description="The ID of the spreadsheet")] = None,
             spreadsheet_url: Annotated[Optional[str], Field(description="The URL of the spreadsheet")] = None
-        ) -> outputs.SheetCreate:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/values/append/",
@@ -185,7 +186,7 @@ class GoogleSheetServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.SheetCreate(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Find rows in a sheet by searching in a specific column.",
@@ -198,7 +199,7 @@ class GoogleSheetServer(BaseMCPServer):
             search_values: Annotated[List[str], Field(description="Values to search for")],
             spreadsheet_id: Annotated[Optional[str], Field(description="The ID of the spreadsheet")] = None,
             spreadsheet_url: Annotated[Optional[str], Field(description="The URL of the spreadsheet")] = None
-        ) -> outputs.SheetData:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/find-row/",
@@ -211,7 +212,7 @@ class GoogleSheetServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.SheetData(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Clear values from a range in a sheet.",
@@ -223,7 +224,7 @@ class GoogleSheetServer(BaseMCPServer):
             spreadsheet_id: Annotated[Optional[str], Field(description="The ID of the spreadsheet")] = None,
             spreadsheet_url: Annotated[Optional[str], Field(description="The URL of the spreadsheet")] = None,
             range: Annotated[Optional[str], Field(description="Range to clear (e.g., 'A1:B10'). If not provided, clears entire sheet")] = None
-        ) -> outputs.SuccessResponse:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/values/clear/",
@@ -235,7 +236,7 @@ class GoogleSheetServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.SuccessResponse(success=True, message="Values cleared successfully")
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Copy a sheet to create a duplicate.",
@@ -247,7 +248,7 @@ class GoogleSheetServer(BaseMCPServer):
             new_sheet_name: Annotated[str, Field(description="Name for the new copied sheet")],
             spreadsheet_id: Annotated[Optional[str], Field(description="The ID of the spreadsheet")] = None,
             spreadsheet_url: Annotated[Optional[str], Field(description="The URL of the spreadsheet")] = None
-        ) -> outputs.SheetCreate:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/copy/",
@@ -259,7 +260,7 @@ class GoogleSheetServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.SheetCreate(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Add a new sheet to a spreadsheet.",
@@ -270,7 +271,7 @@ class GoogleSheetServer(BaseMCPServer):
             sheet_name: Annotated[str, Field(description="Name of the new sheet to add")],
             spreadsheet_id: Annotated[Optional[str], Field(description="The ID of the spreadsheet")] = None,
             spreadsheet_url: Annotated[Optional[str], Field(description="The URL of the spreadsheet")] = None
-        ) -> outputs.SheetCreate:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/add-sheet/",
@@ -281,4 +282,4 @@ class GoogleSheetServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.SheetCreate(**response.data)
+            return [json.dumps(response.data)]

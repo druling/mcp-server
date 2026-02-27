@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated
 from dataclasses import dataclass
@@ -5,9 +6,9 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
+from src.core.outputs import Output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from src.servers.druling.workflow_component import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -37,10 +38,9 @@ class TaskSchedulerServer(BaseMCPServer):
             meta=mcp_meta("get_all_components"),
             structured_output=True,
         )
-        async def get_all_components() -> outputs.ListWorkflowComponent:
+        async def get_all_components() -> Output:
             response = self.backend_service.get(f"{self.base_url}/all/")
-            result: list[outputs.WorkflowComponent] = response.data
-            return outputs.ListWorkflowComponent(result=result)
+            return [json.dumps(item) for item in response.data]
 
         @self._mcp.tool(
             description="Get a workflow by its ID.",
@@ -49,17 +49,9 @@ class TaskSchedulerServer(BaseMCPServer):
         )
         async def get_by_id(
             workflow_id: Annotated[str, Field(description="The ID of the workflow to execute")]
-        ) -> outputs.WorkflowComponent:
+        ) -> Output:
             response = self.backend_service.get(f"{self.base_url}/{workflow_id}/")
-            response = response.data
-            return outputs.WorkflowComponent(
-                    id=response.get("id"),
-                    name=response.get("name"),
-                    operation=response.get("operation"),
-                    description=response.get("description"),
-                    category=response.get("category"),
-                    base_cost=response.get("base_cost"),
-                )
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Search component by name, category or operation.",
@@ -68,19 +60,8 @@ class TaskSchedulerServer(BaseMCPServer):
         )
         async def search_component(
             query: Annotated[str, Field(description="Search component by name, category or operation.")],
-        ) -> outputs.ListWorkflowComponent:
+        ) -> Output:
             response = self.backend_service.get(f"{self.base_url}/search/", params={
                 "query": query
             })
-            result = [
-                outputs.WorkflowComponent(
-                    id=item.get("id"),
-                    name=item.get("name"),
-                    operation=item.get("operation"),
-                    description=item.get("description"),
-                    category=item.get("category"),
-                    base_cost=item.get("base_cost"),
-                )
-                for item in response.data
-            ]
-            return outputs.ListWorkflowComponent(result=result)
+            return [json.dumps(item) for item in response.data]

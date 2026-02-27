@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated, Optional
 from dataclasses import dataclass
@@ -5,9 +6,9 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
+from src.core.outputs import Output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ class ApolloServer(BaseMCPServer):
             location: Annotated[Optional[str], Field(description="Company location")] = None,
             industry: Annotated[Optional[str], Field(description="Company industry")] = None,
             limit: Annotated[Optional[int], Field(description="Maximum number of companies to retrieve")] = 10
-        ) -> outputs.CompanyList:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/companies/search/",
@@ -57,7 +58,7 @@ class ApolloServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.CompanyList(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Get company information by domain name.",
@@ -66,14 +67,14 @@ class ApolloServer(BaseMCPServer):
         )
         async def get_company_by_domain(
             domain: Annotated[str, Field(description="Company domain (e.g., 'example.com')")]
-        ) -> outputs.Company:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/company/domain/",
                 data={"domain": domain},
                 context=context
             )
-            return outputs.Company(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Get contact information from Apollo by domain, name, job title, or LinkedIn profile.",
@@ -88,7 +89,7 @@ class ApolloServer(BaseMCPServer):
             company: Annotated[Optional[str], Field(description="Company name")] = None,
             linkedin: Annotated[Optional[str], Field(description="LinkedIn profile URL")] = None,
             per_page: Annotated[Optional[int], Field(description="Number of contacts per page")] = 10
-        ) -> outputs.ContactList:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/contacts/",
@@ -103,4 +104,4 @@ class ApolloServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.ContactList(**response.data)
+            return [json.dumps(response.data)]

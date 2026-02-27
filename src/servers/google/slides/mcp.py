@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated, Optional, Dict
 from dataclasses import dataclass
@@ -5,9 +6,9 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
+from src.core.outputs import Output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,7 @@ class GoogleSlideServer(BaseMCPServer):
             index_start: Annotated[Optional[int], Field(description="Starting slide index (inclusive)")] = None,
             index_end: Annotated[Optional[int], Field(description="Ending slide index (inclusive)")] = None,
             thumbnail_size: Annotated[Optional[str], Field(description="Size of thumbnails: 'SMALL', 'MEDIUM', 'LARGE'")] = "LARGE"
-        ) -> outputs.PresentationRead:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/read/",
@@ -55,7 +56,7 @@ class GoogleSlideServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.PresentationRead(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Create a presentation from a template with placeholder replacements.",
@@ -67,7 +68,7 @@ class GoogleSlideServer(BaseMCPServer):
             template_id: Annotated[Optional[str], Field(description="The ID of the template presentation")] = None,
             template_url: Annotated[Optional[str], Field(description="The URL of the template presentation")] = None,
             replacements: Annotated[Optional[Dict[str, str]], Field(description="Dictionary of placeholder replacements (e.g., {'{{title}}': 'My Title'})")] = None
-        ) -> outputs.PresentationCreate:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/create_from_template/",
@@ -79,7 +80,7 @@ class GoogleSlideServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.PresentationCreate(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Find all placeholders in a Google Slides template.",
@@ -89,7 +90,7 @@ class GoogleSlideServer(BaseMCPServer):
         async def find_placeholders(
             template_id: Annotated[Optional[str], Field(description="The ID of the template presentation")] = None,
             template_url: Annotated[Optional[str], Field(description="The URL of the template presentation")] = None
-        ) -> outputs.PlaceholderList:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/find_placeholders/",
@@ -99,4 +100,4 @@ class GoogleSlideServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.PlaceholderList(**response.data)
+            return [json.dumps(response.data)]

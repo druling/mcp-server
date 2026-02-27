@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated
 from dataclasses import dataclass
@@ -5,9 +6,9 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
+from src.core.outputs import Output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -38,11 +39,11 @@ class SimilarwebServer(BaseMCPServer):
         )
         async def get_company_by_domain(
             domain: Annotated[str, Field(description="Company domain (e.g., 'example.com')")]
-        ) -> outputs.CompanyInfo:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/company/domain/",
                 data={"domain": domain},
                 context=context
             )
-            return outputs.CompanyInfo(**response.data)
+            return [json.dumps(response.data)]

@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated, Optional, List, Dict, Any
 from dataclasses import dataclass
@@ -5,9 +6,9 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
+from src.core.outputs import Output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -38,14 +39,14 @@ class HubspotServer(BaseMCPServer):
         )
         async def get_properties(
             object_type: Annotated[str, Field(description="Object type (e.g., 'contacts', 'companies', 'deals')")]
-        ) -> outputs.PropertyList:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/properties/",
                 data={"object_type": object_type},
                 context=context
             )
-            return outputs.PropertyList(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Get pipelines for a HubSpot object type.",
@@ -54,14 +55,14 @@ class HubspotServer(BaseMCPServer):
         )
         async def get_pipelines(
             object_type: Annotated[str, Field(description="Object type (e.g., 'deals', 'tickets')")]
-        ) -> outputs.PipelineList:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/pipelines/",
                 data={"object_type": object_type},
                 context=context
             )
-            return outputs.PipelineList(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Get lists for a HubSpot object type.",
@@ -70,14 +71,14 @@ class HubspotServer(BaseMCPServer):
         )
         async def get_lists(
             object_type: Annotated[str, Field(description="Object type (e.g., 'contacts', 'companies')")]
-        ) -> outputs.Lists:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/lists/",
                 data={"object_type": object_type},
                 context=context
             )
-            return outputs.Lists(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Get records from HubSpot with specified properties.",
@@ -88,7 +89,7 @@ class HubspotServer(BaseMCPServer):
             object_type: Annotated[str, Field(description="Object type (e.g., 'contacts', 'companies', 'deals')")],
             properties: Annotated[List[str], Field(description="List of property names to retrieve")],
             limit: Annotated[Optional[int], Field(description="Maximum number of records to retrieve")] = 250
-        ) -> outputs.RecordList:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/records/",
@@ -99,7 +100,7 @@ class HubspotServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.RecordList(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Search for records in HubSpot with filters.",
@@ -111,7 +112,7 @@ class HubspotServer(BaseMCPServer):
             properties: Annotated[List[str], Field(description="List of property names to retrieve")],
             filters: Annotated[Optional[Dict[str, Any]], Field(description="Filter criteria as key-value pairs")] = None,
             limit: Annotated[Optional[int], Field(description="Maximum number of records to retrieve")] = 200
-        ) -> outputs.RecordList:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/records/search/",
@@ -123,7 +124,7 @@ class HubspotServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.RecordList(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Create a new record in HubSpot.",
@@ -133,7 +134,7 @@ class HubspotServer(BaseMCPServer):
         async def create_record(
             object_type: Annotated[str, Field(description="Object type (e.g., 'contacts', 'companies', 'deals')")],
             properties: Annotated[Dict[str, Any], Field(description="Properties for the new record")]
-        ) -> outputs.RecordResult:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/records/create/",
@@ -143,7 +144,7 @@ class HubspotServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.RecordResult(success=True, **response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Update an existing record in HubSpot.",
@@ -154,7 +155,7 @@ class HubspotServer(BaseMCPServer):
             object_type: Annotated[str, Field(description="Object type (e.g., 'contacts', 'companies', 'deals')")],
             object_id: Annotated[str, Field(description="ID of the record to update")],
             properties: Annotated[Dict[str, Any], Field(description="Properties to update")]
-        ) -> outputs.RecordResult:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/records/update/",
@@ -165,7 +166,7 @@ class HubspotServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.RecordResult(success=True, **response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Send a marketing email through HubSpot.",
@@ -179,7 +180,7 @@ class HubspotServer(BaseMCPServer):
             cc: Annotated[Optional[str], Field(description="CC email address")] = None,
             from_email: Annotated[Optional[str], Field(description="Sender email address")] = None,
             reply_to: Annotated[Optional[str], Field(description="Reply-to email address")] = None
-        ) -> outputs.EmailResult:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/email/send/",
@@ -193,4 +194,4 @@ class HubspotServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.EmailResult(success=True, **response.data)
+            return [json.dumps(response.data)]

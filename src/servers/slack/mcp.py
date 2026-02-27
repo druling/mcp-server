@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated, Optional, List
 from dataclasses import dataclass
@@ -5,9 +6,9 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
+from src.core.outputs import Output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -36,28 +37,28 @@ class SlackServer(BaseMCPServer):
             meta=mcp_meta("get_channels"),
             structured_output=True
         )
-        async def get_channels() -> outputs.ChannelList:
+        async def get_channels() -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/channels/",
                 data={},
                 context=context
             )
-            return outputs.ChannelList(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Get list of all users in the workspace.",
             meta=mcp_meta("get_users"),
             structured_output=True
         )
-        async def get_users() -> outputs.UserList:
+        async def get_users() -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/users/",
                 data={},
                 context=context
             )
-            return outputs.UserList(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Send a message to a Slack channel or user.",
@@ -71,7 +72,7 @@ class SlackServer(BaseMCPServer):
             as_user: Annotated[Optional[bool], Field(description="Send as the authenticated user")] = False,
             hide_preview: Annotated[Optional[bool], Field(description="Hide link previews")] = False,
             file_urls: Annotated[Optional[List[str]], Field(description="List of file URLs to attach")] = None
-        ) -> outputs.MessageResult:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/message/send/",
@@ -85,7 +86,7 @@ class SlackServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.MessageResult(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Send a block message with rich formatting to Slack.",
@@ -98,7 +99,7 @@ class SlackServer(BaseMCPServer):
             description: Annotated[Optional[str], Field(description="Fallback text description")] = None,
             thread: Annotated[Optional[str], Field(description="Thread timestamp to reply to")] = None,
             as_user: Annotated[Optional[bool], Field(description="Send as the authenticated user")] = False
-        ) -> outputs.MessageResult:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/message/send-block/",
@@ -111,7 +112,7 @@ class SlackServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.MessageResult(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Read messages from a Slack channel.",
@@ -121,7 +122,7 @@ class SlackServer(BaseMCPServer):
         async def read_messages(
             channel: Annotated[str, Field(description="Channel ID or name to read messages from")],
             limit: Annotated[Optional[int], Field(description="Maximum number of messages to retrieve")] = 100
-        ) -> outputs.MessageList:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/message/read/",
@@ -131,7 +132,7 @@ class SlackServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.MessageList(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Get replies to a thread in Slack.",
@@ -142,7 +143,7 @@ class SlackServer(BaseMCPServer):
             channel: Annotated[str, Field(description="Channel ID or name")],
             thread_ts: Annotated[str, Field(description="Thread timestamp")],
             limit: Annotated[Optional[int], Field(description="Maximum number of replies to retrieve")] = 100
-        ) -> outputs.MessageList:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/thread/replies/",
@@ -153,7 +154,7 @@ class SlackServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.MessageList(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Create a Slack canvas for collaborative content.",
@@ -164,7 +165,7 @@ class SlackServer(BaseMCPServer):
             channel: Annotated[str, Field(description="Channel ID to create canvas in")],
             title: Annotated[str, Field(description="Canvas title")],
             content: Annotated[str, Field(description="Canvas content")]
-        ) -> outputs.CanvasResult:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/canvas/create/",
@@ -175,7 +176,7 @@ class SlackServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.CanvasResult(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Set access permissions for a Slack canvas.",
@@ -186,7 +187,7 @@ class SlackServer(BaseMCPServer):
             canvas_id: Annotated[str, Field(description="Canvas ID")],
             channel_ids: Annotated[List[str], Field(description="List of channel IDs to grant access")],
             access_level: Annotated[Optional[str], Field(description="Access level: 'read' or 'write'")] = "read"
-        ) -> outputs.CanvasResult:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/canvas/access/",
@@ -197,7 +198,7 @@ class SlackServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.CanvasResult(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Get information about a Slack channel.",
@@ -206,14 +207,14 @@ class SlackServer(BaseMCPServer):
         )
         async def channel_info(
             channel: Annotated[str, Field(description="Channel ID or name")]
-        ) -> outputs.ChannelInfo:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/channel/info/",
                 data={"channel": channel},
                 context=context
             )
-            return outputs.ChannelInfo(**response.data)
+            return [json.dumps(response.data)]
 
         @self._mcp.tool(
             description="Get a permalink to a specific message thread.",
@@ -223,7 +224,7 @@ class SlackServer(BaseMCPServer):
         async def get_thread_link(
             channel_id: Annotated[str, Field(description="Channel ID")],
             message_ts: Annotated[str, Field(description="Message timestamp")]
-        ) -> outputs.ThreadLink:
+        ) -> Output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/thread/link/",
@@ -233,4 +234,4 @@ class SlackServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.ThreadLink(**response.data)
+            return [json.dumps(response.data)]
