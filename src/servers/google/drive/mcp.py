@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated, Optional
 from dataclasses import dataclass
@@ -5,9 +6,9 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
+from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,9 @@ class GoogleDriveServer(BaseMCPServer):
     def _register_tools(self) -> None:
         """Register all Google Drive tools with the MCP server."""
 
+        search_files_output = mcp_output(
+            description="List of files matching the search query with file ID, name, MIME type, and URL",
+            examples=[''])
         @self._mcp.tool(
             description="Search for files in Google Drive using a query.",
             meta=mcp_meta("search_files"),
@@ -39,7 +43,7 @@ class GoogleDriveServer(BaseMCPServer):
         async def search_files(
             query: Annotated[str, Field(description="Search query (e.g., 'name contains \"document\"' or 'mimeType=\"application/pdf\"')")],
             max_results: Annotated[Optional[int], Field(description="Maximum number of results to return")] = 100
-        ) -> outputs.SearchResult:
+        ) -> search_files_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/search/",
@@ -49,8 +53,11 @@ class GoogleDriveServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.SearchResult(**response.data)
+            return [json.dumps(response.data)]
 
+        copy_file_output = mcp_output(
+            description="Copied file details including new file ID and URL",
+            examples=[''])
         @self._mcp.tool(
             description="Copy a file in Google Drive.",
             meta=mcp_meta("copy_file"),
@@ -60,7 +67,7 @@ class GoogleDriveServer(BaseMCPServer):
             new_title: Annotated[str, Field(description="Title for the copied file")],
             file_id: Annotated[Optional[str], Field(description="The ID of the file to copy")] = None,
             file_url: Annotated[Optional[str], Field(description="The URL of the file to copy")] = None
-        ) -> outputs.FileOperation:
+        ) -> copy_file_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/copy/",
@@ -71,8 +78,11 @@ class GoogleDriveServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.FileOperation(**response.data)
+            return [json.dumps(response.data)]
 
+        create_folder_output = mcp_output(
+            description="Created folder details including folder ID and URL",
+            examples=[''])
         @self._mcp.tool(
             description="Create a new folder in Google Drive.",
             meta=mcp_meta("create_folder"),
@@ -81,7 +91,7 @@ class GoogleDriveServer(BaseMCPServer):
         async def create_folder(
             folder_name: Annotated[str, Field(description="Name of the new folder")],
             parent_folder_id: Annotated[Optional[str], Field(description="ID of the parent folder (optional)")] = None
-        ) -> outputs.FolderCreate:
+        ) -> create_folder_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/folder/create/",
@@ -91,8 +101,11 @@ class GoogleDriveServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.FolderCreate(**response.data)
+            return [json.dumps(response.data)]
 
+        move_file_output = mcp_output(
+            description="Moved file details with updated parent folder information",
+            examples=[''])
         @self._mcp.tool(
             description="Move a file to a different folder in Google Drive.",
             meta=mcp_meta("move_file"),
@@ -102,7 +115,7 @@ class GoogleDriveServer(BaseMCPServer):
             destination_folder_id: Annotated[str, Field(description="ID of the destination folder")],
             file_id: Annotated[Optional[str], Field(description="The ID of the file to move")] = None,
             file_url: Annotated[Optional[str], Field(description="The URL of the file to move")] = None
-        ) -> outputs.FileOperation:
+        ) -> move_file_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/move/",
@@ -113,8 +126,11 @@ class GoogleDriveServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.FileOperation(**response.data)
+            return [json.dumps(response.data)]
 
+        upload_file_output = mcp_output(
+            description="Uploaded file details including file ID, name, and URL",
+            examples=[''])
         @self._mcp.tool(
             description="Upload a plain text file to Google Drive.",
             meta=mcp_meta("upload_file"),
@@ -124,7 +140,7 @@ class GoogleDriveServer(BaseMCPServer):
             file_name: Annotated[str, Field(description="Name of the file to create")],
             file_content: Annotated[Optional[str], Field(description="Content of the file")] = "",
             parent_folder_id: Annotated[Optional[str], Field(description="ID of the parent folder (optional)")] = None
-        ) -> outputs.FileUpload:
+        ) -> upload_file_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/upload/",
@@ -135,8 +151,11 @@ class GoogleDriveServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.FileUpload(**response.data)
+            return [json.dumps(response.data)]
 
+        change_permissions_output = mcp_output(
+            description="Updated file permission details including permission ID and access level",
+            examples=[''])
         @self._mcp.tool(
             description="Change sharing permissions for a file in Google Drive.",
             meta=mcp_meta("change_permissions"),
@@ -150,7 +169,7 @@ class GoogleDriveServer(BaseMCPServer):
             email_address: Annotated[Optional[str], Field(description="Email address for user/group permissions")] = None,
             domain: Annotated[Optional[str], Field(description="Domain for domain permissions")] = None,
             send_notification: Annotated[Optional[bool], Field(description="Whether to send notification email")] = False
-        ) -> outputs.SuccessResponse:
+        ) -> change_permissions_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/permissions/",
@@ -165,8 +184,11 @@ class GoogleDriveServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.SuccessResponse(success=True, message="Permissions updated successfully")
+            return [json.dumps(response.data)]
 
+        rename_file_output = mcp_output(
+            description="Renamed file details with new name and file ID",
+            examples=[''])
         @self._mcp.tool(
             description="Rename a file in Google Drive.",
             meta=mcp_meta("rename_file"),
@@ -176,7 +198,7 @@ class GoogleDriveServer(BaseMCPServer):
             new_name: Annotated[str, Field(description="New name for the file")],
             file_id: Annotated[Optional[str], Field(description="The ID of the file to rename")] = None,
             file_url: Annotated[Optional[str], Field(description="The URL of the file to rename")] = None
-        ) -> outputs.FileOperation:
+        ) -> rename_file_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/rename/",
@@ -187,8 +209,11 @@ class GoogleDriveServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.FileOperation(**response.data)
+            return [json.dumps(response.data)]
 
+        get_file_output = mcp_output(
+            description="File details including ID, name, MIME type, and downloadable content or URL",
+            examples=[''])
         @self._mcp.tool(
             description="Get a file from Google Drive (download).",
             meta=mcp_meta("get_file"),
@@ -197,7 +222,7 @@ class GoogleDriveServer(BaseMCPServer):
         async def get_file(
             file_id: Annotated[Optional[str], Field(description="The ID of the file to get")] = None,
             file_url: Annotated[Optional[str], Field(description="The URL of the file to get")] = None
-        ) -> outputs.FileRead:
+        ) -> get_file_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/file/",
@@ -207,8 +232,11 @@ class GoogleDriveServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.FileRead(**response.data)
+            return [json.dumps(response.data)]
 
+        list_folder_contents_output = mcp_output(
+            description="List of files and folders in the directory with IDs, names, and URLs",
+            examples=[''])
         @self._mcp.tool(
             description="List contents of a folder in Google Drive.",
             meta=mcp_meta("list_folder_contents"),
@@ -220,7 +248,7 @@ class GoogleDriveServer(BaseMCPServer):
             recursive: Annotated[Optional[bool], Field(description="Whether to list contents recursively")] = False,
             only_drive_link: Annotated[Optional[bool], Field(description="Return only Drive links")] = False,
             only_doc_link: Annotated[Optional[bool], Field(description="Return only Doc links")] = False
-        ) -> outputs.FolderContents:
+        ) -> list_folder_contents_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/folder/contents/",
@@ -233,8 +261,11 @@ class GoogleDriveServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.FolderContents(**response.data)
+            return [json.dumps(response.data)]
 
+        delete_file_output = mcp_output(
+            description="Confirmation that the file or folder was deleted",
+            examples=[''])
         @self._mcp.tool(
             description="Delete a file or folder from Google Drive.",
             meta=mcp_meta("delete_file"),
@@ -243,7 +274,7 @@ class GoogleDriveServer(BaseMCPServer):
         async def delete_file(
             file_id: Annotated[Optional[str], Field(description="The ID of the file to delete")] = None,
             file_url: Annotated[Optional[str], Field(description="The URL of the file to delete")] = None
-        ) -> outputs.SuccessResponse:
+        ) -> delete_file_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/delete/",
@@ -253,4 +284,4 @@ class GoogleDriveServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.SuccessResponse(success=True, message="File deleted successfully")
+            return [json.dumps(response.data)]

@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated, Optional, Dict
 from dataclasses import dataclass
@@ -5,9 +6,9 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
+from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,9 @@ class GoogleSlideServer(BaseMCPServer):
     def _register_tools(self) -> None:
         """Register all Google Slides tools with the MCP server."""
 
+        read_slides_output = mcp_output(
+            description="List of slides with text content, notes, and thumbnail image URLs",
+            examples=[''])
         @self._mcp.tool(
             description="Read slides from a Google Slides presentation.",
             meta=mcp_meta("read_slides"),
@@ -42,7 +46,7 @@ class GoogleSlideServer(BaseMCPServer):
             index_start: Annotated[Optional[int], Field(description="Starting slide index (inclusive)")] = None,
             index_end: Annotated[Optional[int], Field(description="Ending slide index (inclusive)")] = None,
             thumbnail_size: Annotated[Optional[str], Field(description="Size of thumbnails: 'SMALL', 'MEDIUM', 'LARGE'")] = "LARGE"
-        ) -> outputs.PresentationRead:
+        ) -> read_slides_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/read/",
@@ -55,8 +59,11 @@ class GoogleSlideServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.PresentationRead(**response.data)
+            return [json.dumps(response.data)]
 
+        create_from_template_output = mcp_output(
+            description="New presentation details created from template, including presentation ID and URL",
+            examples=[''])
         @self._mcp.tool(
             description="Create a presentation from a template with placeholder replacements.",
             meta=mcp_meta("create_from_template"),
@@ -67,7 +74,7 @@ class GoogleSlideServer(BaseMCPServer):
             template_id: Annotated[Optional[str], Field(description="The ID of the template presentation")] = None,
             template_url: Annotated[Optional[str], Field(description="The URL of the template presentation")] = None,
             replacements: Annotated[Optional[Dict[str, str]], Field(description="Dictionary of placeholder replacements (e.g., {'{{title}}': 'My Title'})")] = None
-        ) -> outputs.PresentationCreate:
+        ) -> create_from_template_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/create_from_template/",
@@ -79,8 +86,11 @@ class GoogleSlideServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.PresentationCreate(**response.data)
+            return [json.dumps(response.data)]
 
+        find_placeholders_output = mcp_output(
+            description="List of all placeholder strings found in the template presentation",
+            examples=[''])
         @self._mcp.tool(
             description="Find all placeholders in a Google Slides template.",
             meta=mcp_meta("find_placeholders"),
@@ -89,7 +99,7 @@ class GoogleSlideServer(BaseMCPServer):
         async def find_placeholders(
             template_id: Annotated[Optional[str], Field(description="The ID of the template presentation")] = None,
             template_url: Annotated[Optional[str], Field(description="The URL of the template presentation")] = None
-        ) -> outputs.PlaceholderList:
+        ) -> find_placeholders_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/find_placeholders/",
@@ -99,4 +109,4 @@ class GoogleSlideServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.PlaceholderList(**response.data)
+            return [json.dumps(response.data)]

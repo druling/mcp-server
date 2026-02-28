@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated
 from dataclasses import dataclass
@@ -5,9 +6,9 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
+from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,9 @@ class ZerobounceServer(BaseMCPServer):
     def _register_tools(self) -> None:
         """Register all Zerobounce tools with the MCP server."""
 
+        validate_email_output = mcp_output(
+            description="Email validation result with status, sub-status, deliverability score, and domain info",
+            examples=[''])
         @self._mcp.tool(
             description="Validate an email address to check if it's valid and deliverable.",
             meta=mcp_meta("validate_email"),
@@ -38,11 +42,11 @@ class ZerobounceServer(BaseMCPServer):
         )
         async def validate_email(
             email: Annotated[str, Field(description="Email address to validate")]
-        ) -> outputs.EmailValidation:
+        ) -> validate_email_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/validate/",
                 data={"email": email},
                 context=context
             )
-            return outputs.EmailValidation(email=email, is_valid=response.data.get("is_valid", False))
+            return [json.dumps(response.data)]
