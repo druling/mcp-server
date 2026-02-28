@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Annotated, Optional, Dict
 from dataclasses import dataclass
@@ -5,9 +6,9 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
+from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,9 @@ class GoogleDocsServer(BaseMCPServer):
     def _register_tools(self) -> None:
         """Register all Google Docs tools with the MCP server."""
 
+        read_document_output = mcp_output(
+            description="Document content including title, body text, and tab structure",
+            examples=[''])
         @self._mcp.tool(
             description="Read a Google Doc document by ID or URL.",
             meta=mcp_meta("read_document"),
@@ -40,7 +44,7 @@ class GoogleDocsServer(BaseMCPServer):
             document_id: Annotated[Optional[str], Field(description="The ID of the document to read")] = None,
             document_url: Annotated[Optional[str], Field(description="The URL of the document to read")] = None,
             tabs: Annotated[Optional[list[str]], Field(description="List of tab IDs to read (optional)")] = None
-        ) -> outputs.DocumentRead:
+        ) -> read_document_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/read/",
@@ -51,8 +55,11 @@ class GoogleDocsServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.DocumentRead(**response.data)
+            return [json.dumps(response.data)]
 
+        create_document_output = mcp_output(
+            description="Created document details including document ID and URL",
+            examples=[''])
         @self._mcp.tool(
             description="Create a new Google Doc document.",
             meta=mcp_meta("create_document"),
@@ -64,7 +71,7 @@ class GoogleDocsServer(BaseMCPServer):
             format_type: Annotated[Optional[str], Field(description="Format type: 'plain_text' or 'html'")] = "plain_text",
             folder_id: Annotated[Optional[str], Field(description="Google Drive folder ID to create the document in")] = None,
             mark_as_public: Annotated[Optional[bool], Field(description="Whether to make the document publicly accessible")] = False
-        ) -> outputs.DocumentCreate:
+        ) -> create_document_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/create/",
@@ -77,8 +84,11 @@ class GoogleDocsServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.DocumentCreate(**response.data)
+            return [json.dumps(response.data)]
 
+        update_document_output = mcp_output(
+            description="Updated document details including document ID and revision",
+            examples=[''])
         @self._mcp.tool(
             description="Update an existing Google Doc document with new content.",
             meta=mcp_meta("update_document"),
@@ -90,7 +100,7 @@ class GoogleDocsServer(BaseMCPServer):
             document_url: Annotated[Optional[str], Field(description="The URL of the document to update")] = None,
             format_type: Annotated[Optional[str], Field(description="Format type: 'plain_text' or 'html'")] = "plain_text",
             upsert_start: Annotated[Optional[bool], Field(description="Whether to insert content at the start (True) or end (False)")] = True
-        ) -> outputs.DocumentUpdate:
+        ) -> update_document_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/update/",
@@ -103,8 +113,11 @@ class GoogleDocsServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.DocumentUpdate(**response.data)
+            return [json.dumps(response.data)]
 
+        list_document_tabs_output = mcp_output(
+            description="List of all document tabs with tab IDs and titles",
+            examples=[''])
         @self._mcp.tool(
             description="List all tabs in a Google Doc document.",
             meta=mcp_meta("list_document_tabs"),
@@ -113,7 +126,7 @@ class GoogleDocsServer(BaseMCPServer):
         async def list_document_tabs(
             document_id: Annotated[Optional[str], Field(description="The ID of the document")] = None,
             document_url: Annotated[Optional[str], Field(description="The URL of the document")] = None
-        ) -> outputs.TabList:
+        ) -> list_document_tabs_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/list_tabs/",
@@ -123,8 +136,11 @@ class GoogleDocsServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.TabList(**response.data)
+            return [json.dumps(response.data)]
 
+        create_from_template_output = mcp_output(
+            description="New document details created from template, including document ID and URL",
+            examples=[''])
         @self._mcp.tool(
             description="Create a new document from a template with placeholder replacements.",
             meta=mcp_meta("create_from_template"),
@@ -137,7 +153,7 @@ class GoogleDocsServer(BaseMCPServer):
             placeholders: Annotated[Optional[Dict[str, str]], Field(description="Dictionary of placeholder replacements (e.g., {'{{name}}': 'John Doe'})")] = None,
             folder_id: Annotated[Optional[str], Field(description="Google Drive folder ID to create the document in")] = None,
             make_public: Annotated[Optional[bool], Field(description="Whether to make the document publicly accessible")] = False
-        ) -> outputs.DocumentCreate:
+        ) -> create_from_template_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/create_from_template/",
@@ -151,8 +167,11 @@ class GoogleDocsServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.DocumentCreate(**response.data)
+            return [json.dumps(response.data)]
 
+        find_placeholders_output = mcp_output(
+            description="List of all placeholder strings found in the template document",
+            examples=[''])
         @self._mcp.tool(
             description="Find all placeholders in a Google Doc template.",
             meta=mcp_meta("find_placeholders"),
@@ -161,7 +180,7 @@ class GoogleDocsServer(BaseMCPServer):
         async def find_placeholders(
             template_id: Annotated[Optional[str], Field(description="The ID of the template document")] = None,
             template_url: Annotated[Optional[str], Field(description="The URL of the template document")] = None
-        ) -> outputs.PlaceholderList:
+        ) -> find_placeholders_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/find_placeholders/",
@@ -171,4 +190,4 @@ class GoogleDocsServer(BaseMCPServer):
                 },
                 context=context
             )
-            return outputs.PlaceholderList(**response.data)
+            return [json.dumps(response.data)]

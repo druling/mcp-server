@@ -1,10 +1,11 @@
+import json
 import logging
 from dataclasses import dataclass
 
 from src.clients.backend.client import BackendClient
+from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
-from . import outputs
 from .prompts import prompts
 
 logger = logging.getLogger(__name__)
@@ -28,16 +29,19 @@ class PerplexityServer(BaseMCPServer):
     def _register_tools(self) -> None:
         """Register all Perplexity tools with the MCP server."""
 
+        reserve_output = mcp_output(
+            description="Reservation confirmation with allocated credits and expiry details",
+            examples=[''])
         @self._mcp.tool(
             description="Reserve credits for Perplexity API usage.",
             meta=mcp_meta("reserve"),
             structured_output=True
         )
-        async def reserve() -> outputs.ReserveResult:
+        async def reserve() -> reserve_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/reserve/",
                 data={},
                 context=context
             )
-            return outputs.ReserveResult(success=True, message="Credit reserved successfully")
+            return [json.dumps(response.data)]
