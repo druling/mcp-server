@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
-from src.core.outputs import Output
+from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
 from .prompts import prompts
@@ -32,6 +32,9 @@ class SimilarwebServer(BaseMCPServer):
     def _register_tools(self) -> None:
         """Register all Similarweb tools with the MCP server."""
 
+        get_company_by_domain_output = mcp_output(
+            description="Website analytics including traffic, engagement metrics, traffic sources, and audience data",
+            examples=[''])
         @self._mcp.tool(
             description="Get company and website analytics information by domain.",
             meta=mcp_meta("get_company_by_domain"),
@@ -39,7 +42,7 @@ class SimilarwebServer(BaseMCPServer):
         )
         async def get_company_by_domain(
             domain: Annotated[str, Field(description="Company domain (e.g., 'example.com')")]
-        ) -> Output:
+        ) -> get_company_by_domain_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/company/domain/",

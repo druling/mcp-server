@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
-from src.core.outputs import Output
+from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
 from .prompts import prompts
@@ -32,6 +32,9 @@ class GoogleMeetServer(BaseMCPServer):
     def _register_tools(self) -> None:
         """Register all Google Meet tools with the MCP server."""
 
+        read_emails_output = mcp_output(
+            description="List of Google Meet meetings matching the search query with title, date, and participants",
+            examples=[''])
         @self._mcp.tool(
             description="Read all emails in the user's Gmail account.",
             meta=mcp_meta("read_emails"),
@@ -40,7 +43,7 @@ class GoogleMeetServer(BaseMCPServer):
         async def read_emails(
                 query: Annotated[str, Field(description="Search query to filter emails (e.g., 'from:name@example.com' or 'subject:meeting')")],
                 max_results: Annotated[int, Field(description="Maximum number of emails to retrieve")] = 10
-        ) -> Output:
+        ) -> read_emails_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/read/",

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pydantic import Field
 
 from src.clients.backend.client import BackendClient
-from src.core.outputs import Output
+from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
 from .prompts import prompts
@@ -32,6 +32,9 @@ class HunterServer(BaseMCPServer):
     def _register_tools(self) -> None:
         """Register all Hunter tools with the MCP server."""
 
+        get_contact_info_output = mcp_output(
+            description="List of contacts with verified email addresses, name, job title, company, and confidence score",
+            examples=[''])
         @self._mcp.tool(
             description="Find and verify contact information using Hunter's email finder.",
             meta=mcp_meta("get_contact_info"),
@@ -46,7 +49,7 @@ class HunterServer(BaseMCPServer):
             company: Annotated[Optional[str], Field(description="Company name")] = None,
             linkedin: Annotated[Optional[str], Field(description="LinkedIn profile URL")] = None,
             per_page: Annotated[Optional[int], Field(description="Number of contacts per page")] = 10
-        ) -> Output:
+        ) -> get_contact_info_output:
             context = self.get_context()
             response = self.backend_service.post(
                 f"{self.base_url}/contacts/",
