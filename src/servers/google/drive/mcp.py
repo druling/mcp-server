@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from pydantic import Field
 
-from src.clients.backend.client import BackendClient
+from src.clients.backend.client import IntegrationAppClient
 from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
@@ -22,7 +22,7 @@ class GoogleDriveServer(BaseMCPServer):
     category: str = "Google Drive"
     description: str = "Google Drive integration for managing files and folders in Google Drive."
     scope: str = "google_drive_access"
-    backend_service = BackendClient()
+    client_service = IntegrationAppClient()
     base_url = "/google/drive"
 
     def _register_prompts(self) -> None:
@@ -45,7 +45,7 @@ class GoogleDriveServer(BaseMCPServer):
             max_results: Annotated[Optional[int], Field(description="Maximum number of results to return")] = 100
         ) -> search_files_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/search/",
                 data={
                     "query": query,
@@ -69,7 +69,7 @@ class GoogleDriveServer(BaseMCPServer):
             file_url: Annotated[Optional[str], Field(description="The URL of the file to copy")] = None
         ) -> copy_file_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/copy/",
                 data={
                     "file_id": file_id,
@@ -93,7 +93,7 @@ class GoogleDriveServer(BaseMCPServer):
             parent_folder_id: Annotated[Optional[str], Field(description="ID of the parent folder (optional)")] = None
         ) -> create_folder_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/folder/create/",
                 data={
                     "folder_name": folder_name,
@@ -117,7 +117,7 @@ class GoogleDriveServer(BaseMCPServer):
             file_url: Annotated[Optional[str], Field(description="The URL of the file to move")] = None
         ) -> move_file_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/move/",
                 data={
                     "file_id": file_id,
@@ -142,7 +142,7 @@ class GoogleDriveServer(BaseMCPServer):
             parent_folder_id: Annotated[Optional[str], Field(description="ID of the parent folder (optional)")] = None
         ) -> upload_file_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/upload/",
                 data={
                     "file_name": file_name,
@@ -171,7 +171,7 @@ class GoogleDriveServer(BaseMCPServer):
             send_notification: Annotated[Optional[bool], Field(description="Whether to send notification email")] = False
         ) -> change_permissions_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/permissions/",
                 data={
                     "file_id": file_id,
@@ -200,7 +200,7 @@ class GoogleDriveServer(BaseMCPServer):
             file_url: Annotated[Optional[str], Field(description="The URL of the file to rename")] = None
         ) -> rename_file_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/rename/",
                 data={
                     "file_id": file_id,
@@ -224,7 +224,7 @@ class GoogleDriveServer(BaseMCPServer):
             file_url: Annotated[Optional[str], Field(description="The URL of the file to get")] = None
         ) -> get_file_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/file/",
                 data={
                     "file_id": file_id,
@@ -250,7 +250,7 @@ class GoogleDriveServer(BaseMCPServer):
             only_doc_link: Annotated[Optional[bool], Field(description="Return only Doc links")] = False
         ) -> list_folder_contents_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/folder/contents/",
                 data={
                     "folder_id": folder_id,
@@ -276,7 +276,7 @@ class GoogleDriveServer(BaseMCPServer):
             file_url: Annotated[Optional[str], Field(description="The URL of the file to delete")] = None
         ) -> delete_file_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/delete/",
                 data={
                     "file_id": file_id,

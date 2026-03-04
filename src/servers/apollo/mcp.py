@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from pydantic import Field
 
-from src.clients.backend.client import BackendClient
+from src.clients.backend.client import IntegrationAppClient
 from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
@@ -22,7 +22,7 @@ class ApolloServer(BaseMCPServer):
     category: str = "Apollo"
     description: str = "Apollo integration for accessing contact and company data."
     scope: str = "apollo_access"
-    backend_service = BackendClient()
+    client_service = IntegrationAppClient()
     base_url = "/apollo"
 
     def _register_prompts(self) -> None:
@@ -49,7 +49,7 @@ class ApolloServer(BaseMCPServer):
             limit: Annotated[Optional[int], Field(description="Maximum number of companies to retrieve")] = 10
         ) -> search_companies_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/companies/search/",
                 data={
                     "name": name,
@@ -75,7 +75,7 @@ class ApolloServer(BaseMCPServer):
             domain: Annotated[str, Field(description="Company domain (e.g., 'example.com')")]
         ) -> get_company_by_domain_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/company/domain/",
                 data={"domain": domain},
                 context=context
@@ -100,7 +100,7 @@ class ApolloServer(BaseMCPServer):
             per_page: Annotated[Optional[int], Field(description="Number of contacts per page")] = 10
         ) -> get_contact_info_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/contacts/",
                 data={
                     "domain": domain,

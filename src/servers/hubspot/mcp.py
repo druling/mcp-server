@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from pydantic import Field
 
-from src.clients.backend.client import BackendClient
+from src.clients.backend.client import IntegrationAppClient
 from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
@@ -22,7 +22,7 @@ class HubspotServer(BaseMCPServer):
     category: str = "HubSpot"
     description: str = "HubSpot integration for CRM and marketing automation."
     scope: str = "hubspot_access"
-    backend_service = BackendClient()
+    client_service = IntegrationAppClient()
     base_url = "/hubspot"
 
     def _register_prompts(self) -> None:
@@ -44,7 +44,7 @@ class HubspotServer(BaseMCPServer):
             object_type: Annotated[str, Field(description="Object type (e.g., 'contacts', 'companies', 'deals')")]
         ) -> get_properties_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/properties/",
                 data={"object_type": object_type},
                 context=context
@@ -63,7 +63,7 @@ class HubspotServer(BaseMCPServer):
             object_type: Annotated[str, Field(description="Object type (e.g., 'deals', 'tickets')")]
         ) -> get_pipelines_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/pipelines/",
                 data={"object_type": object_type},
                 context=context
@@ -82,7 +82,7 @@ class HubspotServer(BaseMCPServer):
             object_type: Annotated[str, Field(description="Object type (e.g., 'contacts', 'companies')")]
         ) -> get_lists_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/lists/",
                 data={"object_type": object_type},
                 context=context
@@ -103,7 +103,7 @@ class HubspotServer(BaseMCPServer):
             limit: Annotated[Optional[int], Field(description="Maximum number of records to retrieve")] = 250
         ) -> get_records_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/records/",
                 data={
                     "object_type": object_type,
@@ -129,7 +129,7 @@ class HubspotServer(BaseMCPServer):
             limit: Annotated[Optional[int], Field(description="Maximum number of records to retrieve")] = 200
         ) -> search_records_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/records/search/",
                 data={
                     "object_type": object_type,
@@ -154,7 +154,7 @@ class HubspotServer(BaseMCPServer):
             properties: Annotated[Dict[str, Any], Field(description="Properties for the new record")]
         ) -> create_record_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/records/create/",
                 data={
                     "object_type": object_type,
@@ -178,7 +178,7 @@ class HubspotServer(BaseMCPServer):
             properties: Annotated[Dict[str, Any], Field(description="Properties to update")]
         ) -> update_record_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/records/update/",
                 data={
                     "object_type": object_type,
@@ -206,7 +206,7 @@ class HubspotServer(BaseMCPServer):
             reply_to: Annotated[Optional[str], Field(description="Reply-to email address")] = None
         ) -> send_marketing_email_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/email/send/",
                 data={
                     "email_id": email_id,
