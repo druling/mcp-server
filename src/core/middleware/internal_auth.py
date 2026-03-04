@@ -1,7 +1,8 @@
 import logging
 
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 from starlette.responses import JSONResponse
-from starlette.types import ASGIApp, Receive, Scope, Send
 
 from src.core.enums.CustomHeader import CustomHeader
 from src.setup.config import config
@@ -9,27 +10,23 @@ from src.setup.config import config
 logger = logging.getLogger(__name__)
 
 
-class InternalAuthMiddleware:
-    def __init__(self, app: ASGIApp):
-        self.app = app
+class InternalAuthMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app):
+        super().__init__(app)
         self.api_key = config.internal_secret
         self.excluded_paths = {"/health"}
 
-    async def __call__(self, scope: Scope, receive: Receive, send: Send):
-        if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-
-        path = scope["path"].rstrip("/")
+    async def dispatch(self, request: Request, call_next):
+        # Skip auth for excluded paths
+        path = request.url.path.rstrip('/')
         if path not in self.excluded_paths:
-            headers = dict(scope.get("headers", []))
-            api_key = headers.get(CustomHeader.X_INTERNAL_AUTH.value.encode(), b"").decode()
+            api_key = request.headers.get(CustomHeader.X_INTERNAL_AUTH.value)
             if api_key != self.api_key:
-                response = JSONResponse(
+                return JSONResponse(
                     status_code=401,
-                    content={"detail": "Unauthorized connection request"},
+                    content={"detail": "Unauthorized connection request"}
                 )
-                await response(scope, receive, send)
-                return
+                # return AuthenticationError("Unauthorized access")
 
-        await self.app(scope, receive, send)
+        response = await call_next(request)
+        return response
