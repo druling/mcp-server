@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from pydantic import Field
 
-from src.clients.backend.client import BackendClient
+from src.clients.backend.client import IntegrationAppClient
 from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
@@ -22,7 +22,7 @@ class FirecrawlServer(BaseMCPServer):
     category: str = "Firecrawl"
     description: str = "Firecrawl integration for web scraping and data extraction."
     scope: str = "firecrawl_access"
-    backend_service = BackendClient()
+    client_service = IntegrationAppClient()
     base_url = "/firecrawl"
 
     def _register_prompts(self) -> None:
@@ -50,7 +50,7 @@ class FirecrawlServer(BaseMCPServer):
             raw_html: Annotated[Optional[bool], Field(description="Include raw HTML in response")] = False
         ) -> scrape_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/scrape/",
                 data={
                     "url": url,
@@ -79,7 +79,7 @@ class FirecrawlServer(BaseMCPServer):
             allow_external: Annotated[Optional[bool], Field(description="Allow crawling external links")] = True
         ) -> crawl_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/crawl/",
                 data={
                     "url": url,
@@ -105,7 +105,7 @@ class FirecrawlServer(BaseMCPServer):
             max_jobs: Annotated[Optional[int], Field(description="Maximum number of jobs to retrieve")] = 30
         ) -> search_jobs_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/jobs/search/",
                 data={
                     "source": source,

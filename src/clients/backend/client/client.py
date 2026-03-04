@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 
 class BackendClient(BaseClient):
-    def __init__(self):
-        backend_url = f"{config.backend_url}/internal/integration"
+    def __init__(self, base_url: str = ""):
+        backend_url = f"{config.backend_url}/internal{base_url}"
         super().__init__(backend_url, config.timeout)
 
     def get(self, endpoint: str, params: dict = None, context: MCPContext = None) -> BaseResponse | Dict:

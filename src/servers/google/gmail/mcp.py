@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from pydantic import Field
 
-from src.clients.backend.client import BackendClient
+from src.clients.backend.client import IntegrationAppClient
 from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
@@ -22,7 +22,7 @@ class GmailServer(BaseMCPServer):
     category: str = "Gmail"
     description: str = "Gmail integration for reading emails and performing actions on Gmail accounts."
     scope: str = "gmail_access"
-    backend_service = BackendClient()
+    client_service = IntegrationAppClient()
     base_url = "/google/gmail"
 
     def _register_prompts(self) -> None:
@@ -45,7 +45,7 @@ class GmailServer(BaseMCPServer):
             max_results: Annotated[Optional[int], Field(description="Maximum number of emails to retrieve")] = 10
         ) -> read_email_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/read/",
                 data={
                     "query": query,
@@ -77,7 +77,7 @@ class GmailServer(BaseMCPServer):
             is_reply: Annotated[Optional[bool], Field(description="Whether this is a reply to an existing email")] = False
         ) -> send_email_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/send/",
                 data={
                     "to": to,
@@ -111,7 +111,7 @@ class GmailServer(BaseMCPServer):
             remove_labels: Annotated[Optional[List[str]], Field(description="List of label IDs to remove")] = None
         ) -> update_email_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/update/",
                 data={
                     "message_id": message_id,
@@ -143,7 +143,7 @@ class GmailServer(BaseMCPServer):
             thread_id: Annotated[Optional[str], Field(description="Thread ID to attach to")] = None
         ) -> create_draft_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/create_draft/",
                 data={
                     "to": to,
@@ -181,7 +181,7 @@ class GmailServer(BaseMCPServer):
             save_as_draft: Annotated[Optional[bool], Field(description="Save as draft instead of sending")] = False
         ) -> forward_email_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/forward/",
                 data={
                     "to": to,
@@ -213,7 +213,7 @@ class GmailServer(BaseMCPServer):
             message_list_visibility: Annotated[Optional[str], Field(description="Visibility in message list: 'show', 'hide'")] = "show"
         ) -> create_label_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/create_label/",
                 data={
                     "label_name": label_name,
@@ -236,7 +236,7 @@ class GmailServer(BaseMCPServer):
             message_id: Annotated[str, Field(description="ID of the message to archive")]
         ) -> archive_email_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/archive_email/",
                 data={"message_id": message_id},
                 context=context
@@ -255,7 +255,7 @@ class GmailServer(BaseMCPServer):
             message_id: Annotated[str, Field(description="ID of the message to trash")]
         ) -> trash_email_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/trash/",
                 data={"message_id": message_id},
                 context=context
@@ -274,7 +274,7 @@ class GmailServer(BaseMCPServer):
             message_id: Annotated[str, Field(description="ID of the message to star")]
         ) -> star_email_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/start/",
                 data={"message_id": message_id},
                 context=context
@@ -293,7 +293,7 @@ class GmailServer(BaseMCPServer):
             message_id: Annotated[str, Field(description="ID of the message to unstar")]
         ) -> unstar_email_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/unstart/",
                 data={"message_id": message_id},
                 context=context
@@ -313,7 +313,7 @@ class GmailServer(BaseMCPServer):
             attachment_id: Annotated[str, Field(description="ID of the attachment to retrieve")]
         ) -> get_attachment_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/get_attachment/",
                 data={
                     "message_id": message_id,
@@ -333,7 +333,7 @@ class GmailServer(BaseMCPServer):
         )
         async def list_labels() -> list_labels_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/list_labels/",
                 data={},
                 context=context
