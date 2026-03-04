@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from pydantic import Field
 
-from src.clients.backend.client import BackendClient
+from src.clients.backend.client import IntegrationAppClient
 from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
@@ -22,7 +22,7 @@ class ConfluenceServer(BaseMCPServer):
     category: str = "Confluence"
     description: str = "Confluence integration for managing wiki pages and documentation."
     scope: str = "confluence_access"
-    backend_service = BackendClient()
+    client_service = IntegrationAppClient()
     base_url = "/atlassian/confluence"
 
     def _register_prompts(self) -> None:
@@ -45,7 +45,7 @@ class ConfluenceServer(BaseMCPServer):
                 max_results: Annotated[int, Field(description="Maximum number of emails to retrieve")] = 10
         ) -> read_emails_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/read/",
                 data={
                 "query": query,

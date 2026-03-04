@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from pydantic import Field
 
-from src.clients.backend.client import BackendClient
+from src.clients.backend.client import IntegrationAppClient
 from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
@@ -22,7 +22,7 @@ class GoogleDocsServer(BaseMCPServer):
     category: str = "Google Docs"
     description: str = "Google Docs integration for reading and managing documents in Google Drive."
     scope: str = "google_docs_access"
-    backend_service = BackendClient()
+    client_service = IntegrationAppClient()
     base_url = "/google/docs"
 
     def _register_prompts(self) -> None:
@@ -46,7 +46,7 @@ class GoogleDocsServer(BaseMCPServer):
             tabs: Annotated[Optional[list[str]], Field(description="List of tab IDs to read (optional)")] = None
         ) -> read_document_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/read/",
                 data={
                     "document_id": document_id,
@@ -73,7 +73,7 @@ class GoogleDocsServer(BaseMCPServer):
             mark_as_public: Annotated[Optional[bool], Field(description="Whether to make the document publicly accessible")] = False
         ) -> create_document_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/create/",
                 data={
                     "title": title,
@@ -102,7 +102,7 @@ class GoogleDocsServer(BaseMCPServer):
             upsert_start: Annotated[Optional[bool], Field(description="Whether to insert content at the start (True) or end (False)")] = True
         ) -> update_document_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/update/",
                 data={
                     "document_id": document_id,
@@ -128,7 +128,7 @@ class GoogleDocsServer(BaseMCPServer):
             document_url: Annotated[Optional[str], Field(description="The URL of the document")] = None
         ) -> list_document_tabs_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/list_tabs/",
                 data={
                     "document_id": document_id,
@@ -155,7 +155,7 @@ class GoogleDocsServer(BaseMCPServer):
             make_public: Annotated[Optional[bool], Field(description="Whether to make the document publicly accessible")] = False
         ) -> create_from_template_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/create_from_template/",
                 data={
                     "template_id": template_id,
@@ -182,7 +182,7 @@ class GoogleDocsServer(BaseMCPServer):
             template_url: Annotated[Optional[str], Field(description="The URL of the template document")] = None
         ) -> find_placeholders_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/find_placeholders/",
                 data={
                     "template_id": template_id,

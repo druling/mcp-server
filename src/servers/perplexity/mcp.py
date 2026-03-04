@@ -2,7 +2,7 @@ import json
 import logging
 from dataclasses import dataclass
 
-from src.clients.backend.client import BackendClient
+from src.clients.backend.client import IntegrationAppClient
 from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
@@ -19,7 +19,7 @@ class PerplexityServer(BaseMCPServer):
     category: str = "Perplexity"
     description: str = "Perplexity integration for AI-powered search and research."
     scope: str = "perplexity_access_key"
-    backend_service = BackendClient()
+    client_service = IntegrationAppClient()
     base_url = "/perplexity"
 
     def _register_prompts(self) -> None:
@@ -39,7 +39,7 @@ class PerplexityServer(BaseMCPServer):
         )
         async def reserve() -> reserve_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/reserve/",
                 data={},
                 context=context

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from pydantic import Field
 
-from src.clients.backend.client import BackendClient
+from src.clients.backend.client import IntegrationAppClient
 from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
@@ -22,7 +22,7 @@ class HunterServer(BaseMCPServer):
     category: str = "Hunter"
     description: str = "Hunter integration for email finding and verification."
     scope: str = "hunter_access"
-    backend_service = BackendClient()
+    client_service = IntegrationAppClient()
     base_url = "/hunter"
 
     def _register_prompts(self) -> None:
@@ -51,7 +51,7 @@ class HunterServer(BaseMCPServer):
             per_page: Annotated[Optional[int], Field(description="Number of contacts per page")] = 10
         ) -> get_contact_info_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/contacts/",
                 data={
                     "domain": domain,

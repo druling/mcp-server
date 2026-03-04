@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from pydantic import Field
 
-from src.clients.backend.client import BackendClient
+from src.clients.backend.client import IntegrationAppClient
 from src.core.outputs import mcp_output
 from src.core.service import BaseMCPServer
 from src.core.utils.mcp_tool_meta import mcp_meta
@@ -22,7 +22,7 @@ class SlackServer(BaseMCPServer):
     category: str = "Slack"
     description: str = "Slack integration for messaging and team collaboration."
     scope: str = "slack_access"
-    backend_service = BackendClient()
+    client_service = IntegrationAppClient()
     base_url = "/slack"
 
     def _register_prompts(self) -> None:
@@ -42,7 +42,7 @@ class SlackServer(BaseMCPServer):
         )
         async def get_channels() -> get_channels_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/channels/",
                 data={},
                 context=context
@@ -59,7 +59,7 @@ class SlackServer(BaseMCPServer):
         )
         async def get_users() -> get_users_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/users/",
                 data={},
                 context=context
@@ -83,7 +83,7 @@ class SlackServer(BaseMCPServer):
             file_urls: Annotated[Optional[List[str]], Field(description="List of file URLs to attach")] = None
         ) -> send_message_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/message/send/",
                 data={
                     "channel": channel,
@@ -113,7 +113,7 @@ class SlackServer(BaseMCPServer):
             as_user: Annotated[Optional[bool], Field(description="Send as the authenticated user")] = False
         ) -> send_block_message_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/message/send-block/",
                 data={
                     "channel": channel,
@@ -139,7 +139,7 @@ class SlackServer(BaseMCPServer):
             limit: Annotated[Optional[int], Field(description="Maximum number of messages to retrieve")] = 100
         ) -> read_messages_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/message/read/",
                 data={
                     "channel": channel,
@@ -163,7 +163,7 @@ class SlackServer(BaseMCPServer):
             limit: Annotated[Optional[int], Field(description="Maximum number of replies to retrieve")] = 100
         ) -> conversation_replies_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/thread/replies/",
                 data={
                     "channel": channel,
@@ -188,7 +188,7 @@ class SlackServer(BaseMCPServer):
             content: Annotated[str, Field(description="Canvas content")]
         ) -> create_canvas_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/canvas/create/",
                 data={
                     "channel": channel,
@@ -213,7 +213,7 @@ class SlackServer(BaseMCPServer):
             access_level: Annotated[Optional[str], Field(description="Access level: 'read' or 'write'")] = "read"
         ) -> set_canvas_access_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/canvas/access/",
                 data={
                     "canvas_id": canvas_id,
@@ -236,7 +236,7 @@ class SlackServer(BaseMCPServer):
             channel: Annotated[str, Field(description="Channel ID or name")]
         ) -> channel_info_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/channel/info/",
                 data={"channel": channel},
                 context=context
@@ -256,7 +256,7 @@ class SlackServer(BaseMCPServer):
             message_ts: Annotated[str, Field(description="Message timestamp")]
         ) -> get_thread_link_output:
             context = self.get_context()
-            response = self.backend_service.post(
+            response = self.client_service.post(
                 f"{self.base_url}/thread/link/",
                 data={
                     "channel_id": channel_id,
