@@ -1,24 +1,26 @@
 import uuid
 import time
 import logging
-from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.types import ASGIApp
 
-from src.core.exceptions import BaseError
+from starlette.requests import Request
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 logger = logging.getLogger(__name__)
 
 
-class RequestIDMiddleware(BaseHTTPMiddleware):
+class RequestIDMiddleware:
     def __init__(self, app: ASGIApp):
-        super().__init__(app)
+        self.app = app
 
-    async def dispatch(self, request: Request, call_next):
+    async def __call__(self, scope: Scope, receive: Receive, send: Send):
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
         request_id = str(uuid.uuid4())
+        request = Request(scope, receive)
         request.state.request_id = request_id
 
-        # Add request_id to logging context
         old_factory = logging.getLogRecordFactory()
 
         def record_factory(*args, **kwargs):
@@ -28,27 +30,28 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 
         logging.setLogRecordFactory(record_factory)
 
+        status_code: list[int] = [0]
         start_time = time.time()
 
-        try:
-            response = await call_next(request)
-            process_time = time.time() - start_time
+        async def send_wrapper(message: dict):
+            if message["type"] == "http.response.start":
+                status_code[0] = message.get("status", 0)
+            await send(message)
 
-            # Log request completion
+        try:
+            await self.app(scope, receive, send_wrapper)
+            process_time = time.time() - start_time
             logger.info(
                 f"{request.method} {request.url.path}",
                 extra={
                     "method": request.method,
                     "url": str(request.url),
-                    "status_code": response.status_code,
+                    "status_code": status_code[0],
                     "execution_time": round(process_time, 4),
                     "user_agent": request.headers.get("user-agent", ""),
-                    "client_ip": request.client.host if request.client else ""
-                }
+                    "client_ip": request.client.host if request.client else "",
+                },
             )
-
-            return response
-
         except Exception as e:
             process_time = time.time() - start_time
             logger.error(
@@ -57,11 +60,10 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
                     "method": request.method,
                     "url": str(request.url),
                     "execution_time": round(process_time, 4),
-                    "error": str(e)
+                    "error": str(e),
                 },
-                exc_info=True
+                exc_info=True,
             )
-            raise BaseError(f"Request failed: {request.method} {request.url.path}")
+            raise
         finally:
-            # Restore original factory
             logging.setLogRecordFactory(old_factory)
