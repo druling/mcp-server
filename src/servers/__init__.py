@@ -7,7 +7,6 @@ from src.servers.apollo.mcp import ApolloServer
 from src.servers.firecrawl.mcp import FirecrawlServer
 from src.servers.hubspot.mcp import HubspotServer
 from src.servers.hunter.mcp import HunterServer
-from src.servers.perplexity.mcp import PerplexityServer
 from src.servers.slack.mcp import SlackServer
 from src.servers.zerobounce.mcp import ZerobounceServer
 from src.servers.similarweb.mcp import SimilarwebServer
@@ -17,7 +16,6 @@ apollo_server = ApolloServer()
 firecrawl_server = FirecrawlServer()
 hubspot_server = HubspotServer()
 hunter_server = HunterServer()
-perplexity_server = PerplexityServer()
 slack_server = SlackServer()
 zerobounce_server = ZerobounceServer()
 similarweb_server = SimilarwebServer()
@@ -28,7 +26,6 @@ INTEGRATION_MCP_SERVERS = {
     "firecrawl": firecrawl_server,
     "hubspot": hubspot_server,
     "hunter": hunter_server,
-    "perplexity": perplexity_server,
     "slack": slack_server,
     "zerobounce": zerobounce_server,
     "similarweb": similarweb_server,
