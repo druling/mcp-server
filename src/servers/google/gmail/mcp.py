@@ -41,7 +41,7 @@ class GmailServer(BaseMCPServer):
             structured_output=True
         )
         async def read_emails(
-            query: Annotated[Optional[str], Field(description="Search query to filter emails (e.g., 'from:name@example.com' or 'subject:meeting')")] = None,
+            query: Annotated[str, Field(description="Search query to filter emails (e.g., 'from:name@example.com' or 'subject:meeting')")] = None,
             max_results: Annotated[Optional[int], Field(description="Maximum number of emails to retrieve")] = 10
         ) -> read_email_output:
             context = self.get_context()
