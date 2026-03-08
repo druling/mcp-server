@@ -21,7 +21,7 @@ class FirecrawlServer(BaseMCPServer):
     name: str = "firecrawl"
     category: str = "Firecrawl"
     description: str = "Firecrawl integration for web scraping and data extraction."
-    scope: str = "firecrawl_access"
+    scope: str = "firecrawl_access_key"
     client_service = IntegrationAppClient()
     base_url = "/firecrawl"
 
