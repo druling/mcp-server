@@ -64,7 +64,7 @@ class GmailServer(BaseMCPServer):
             structured_output=True
         )
         async def send_email(
-            to: Annotated[str, Field(description="Recipient email address")],
+            to: Annotated[List[str], Field(description="Recipient email address")],
             subject: Annotated[str, Field(description="Email subject")],
             body: Annotated[Optional[str], Field(description="Plain text body of the email")] = None,
             html_body: Annotated[Optional[str], Field(description="HTML body of the email")] = None,

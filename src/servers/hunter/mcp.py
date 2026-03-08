@@ -21,7 +21,7 @@ class HunterServer(BaseMCPServer):
     name: str = "hunter"
     category: str = "Hunter"
     description: str = "Hunter integration for email finding and verification."
-    scope: str = "hunter_access"
+    scope: str = "hunter_access_key"
     client_service = IntegrationAppClient()
     base_url = "/hunter"
 

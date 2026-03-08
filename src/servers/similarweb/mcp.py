@@ -21,7 +21,7 @@ class SimilarwebServer(BaseMCPServer):
     name: str = "similarweb"
     category: str = "Similarweb"
     description: str = "Similarweb integration for website analytics and market intelligence."
-    scope: str = "similarweb_access"
+    scope: str = "similarweb_access_key"
     client_service = IntegrationAppClient()
     base_url = "/similarweb"
 
