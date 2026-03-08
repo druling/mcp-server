@@ -41,7 +41,7 @@ class GmailServer(BaseMCPServer):
             structured_output=True
         )
         async def read_emails(
-            query: Annotated[Optional[str], Field(description="Search query to filter emails (e.g., 'from:name@example.com' or 'subject:meeting')")] = None,
+            query: Annotated[str, Field(description="Search query to filter emails (e.g., 'from:name@example.com' or 'subject:meeting')")] = None,
             max_results: Annotated[Optional[int], Field(description="Maximum number of emails to retrieve")] = 10
         ) -> read_email_output:
             context = self.get_context()
@@ -64,7 +64,7 @@ class GmailServer(BaseMCPServer):
             structured_output=True
         )
         async def send_email(
-            to: Annotated[str, Field(description="Recipient email address")],
+            to: Annotated[List[str], Field(description="Recipient email address")],
             subject: Annotated[str, Field(description="Email subject")],
             body: Annotated[Optional[str], Field(description="Plain text body of the email")] = None,
             html_body: Annotated[Optional[str], Field(description="HTML body of the email")] = None,
