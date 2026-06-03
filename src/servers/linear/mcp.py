@@ -21,7 +21,7 @@ class LinearServer(BaseMCPServer):
     name: str = "linear"
     category: str = "Linear"
     description: str = "Linear integration for engineering issue tracking, project management, and team workflows."
-    scope: str = "linear_access_key"
+    scope: str = "linear_access"
     client_service = IntegrationAppClient()
     base_url = "/linear"
 
