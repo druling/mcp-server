@@ -21,7 +21,7 @@ class AsanaServer(BaseMCPServer):
     name: str = "asana"
     category: str = "Asana"
     description: str = "Asana integration for project and task management across teams and workspaces."
-    scope: str = "asana_access_key"
+    scope: str = "asana_access"
     client_service = IntegrationAppClient()
     base_url = "/asana"
 

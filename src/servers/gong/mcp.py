@@ -21,7 +21,7 @@ class GongServer(BaseMCPServer):
     name: str = "gong"
     category: str = "Gong"
     description: str = "Gong integration for sales intelligence and conversation analytics."
-    scope: str = "gong_access_key"
+    scope: str = "gong_access"
     client_service = IntegrationAppClient()
     base_url = "/gong"
 
